@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { TextField } from '@mui/material'
+import { FcGoogle } from 'react-icons/fc'
 
 const Login = () => {
 
@@ -44,6 +45,10 @@ const Login = () => {
         }
       </div>
       <button type='submit' className='w-full bg-black text-white p-2'>{currentState === 'Login' ? 'Sign In' : 'Sign Up'}</button>
+      <button type='button' className='w-full flex items-center justify-center gap-2 bg-white text-black p-2 border '>
+        <FcGoogle className='w-5 h-5' />
+        Login with Google
+      </button>
     </form>
   )
 }
