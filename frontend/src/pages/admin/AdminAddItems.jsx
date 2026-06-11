@@ -90,7 +90,7 @@ const AdminAddItems = () => {
             />
 
             <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                <AdminCard>
+                <AdminCard className="space-y-5">
                     <Field label="Product Images Upload" error={errors.images}>
                         <div
                             onDragOver={(e) => e.preventDefault()}
@@ -98,7 +98,7 @@ const AdminAddItems = () => {
                                 e.preventDefault()
                                 handleFiles(e.dataTransfer.files)
                             }}
-                            className="rounded-3xl border border-dashed bg-gray-50 p-6 text-center transition hover:bg-gray-100"
+                            className=" border border-dashed bg-gray-50 p-6 text-center transition hover:bg-gray-100"
                         >
                             <input
                                 id="product-images"
@@ -118,7 +118,7 @@ const AdminAddItems = () => {
 
                     <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {[0, 1, 2, 3].map((slot) => (
-                            <div key={slot} className="aspect-square overflow-hidden rounded-3xl border bg-gray-50">
+                            <div key={slot} className="aspect-square overflow-hidden  border bg-gray-50">
                                 {previews[slot] ? (
                                     <img src={previews[slot].url} alt={previews[slot].name} className="h-full w-full object-cover" />
                                 ) : (
@@ -127,9 +127,6 @@ const AdminAddItems = () => {
                             </div>
                         ))}
                     </div>
-                </AdminCard>
-
-                <AdminCard className="space-y-5">
                     <Field label="Product Name" error={errors.name}>
                         <input value={form.name} onChange={(e) => updateForm('name', e.target.value)} className={inputClass} placeholder="Women Round Neck Cotton Top" />
                     </Field>
@@ -163,7 +160,7 @@ const AdminAddItems = () => {
                                     key={size}
                                     type="button"
                                     onClick={() => toggleSize(size)}
-                                    className={`rounded-full border px-5 py-2 text-sm transition ${form.sizes.includes(size) ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+                                    className={` border px-5 py-2 text-sm transition ${form.sizes.includes(size) ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
                                 >
                                     {size}
                                 </button>
@@ -178,7 +175,7 @@ const AdminAddItems = () => {
                                     key={status}
                                     type="button"
                                     onClick={() => updateForm('status', status)}
-                                    className={`rounded-2xl border px-4 py-3 text-sm transition ${form.status === status ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
+                                    className={` border px-4 py-3 text-sm transition ${form.status === status ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}
                                 >
                                     {status}
                                 </button>
@@ -187,8 +184,8 @@ const AdminAddItems = () => {
                     </Field>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
-                        <button type="submit" className="rounded-full bg-black px-6 py-3 text-sm text-white">Save Product</button>
-                        <button type="button" onClick={handleCancel} className="rounded-full border px-6 py-3 text-sm">Cancel</button>
+                        <button type="submit" className=" bg-black px-6 py-3 text-sm text-white">Save Product</button>
+                        <button type="button" onClick={handleCancel} className=" border px-6 py-3 text-sm">Cancel</button>
                     </div>
                 </AdminCard>
             </form>
