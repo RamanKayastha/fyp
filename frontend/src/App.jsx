@@ -20,6 +20,7 @@ import AdminItemsList from './pages/admin/AdminItemsList'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSettings from './pages/admin/AdminSettings'
+import OAuthSuccess from './pages/auth/OAuthSuccess'
 
 const App = () => {
   const location = useLocation()
@@ -37,6 +38,7 @@ const App = () => {
         <Route path='/orders' element={<Orders />} />
         <Route path='/place-order' element={<Placeorder />} />
         <Route path='/login' element={<Login />} />
+        <Route path='/oauth-success' element={<OAuthSuccess />} />
         <Route path='/collections' element={<Collection />} />
         <Route path='/cart' element={<Cart />} />
         <Route path='/admin' element={<AdminLayout />}>
