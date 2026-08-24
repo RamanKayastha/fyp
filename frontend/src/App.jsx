@@ -1,4 +1,3 @@
-import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import About from './pages/marketing/About'
@@ -7,6 +6,8 @@ import Product from './pages/marketing/Product'
 import Orders from './pages/marketing/Orders'
 import Placeorder from './pages/marketing/Placeorder'
 import Login from './pages/marketing/Login'
+import Register from './pages/marketing/Register'
+import VerifyOtp from './pages/marketing/VerifyOtp'
 import Collection from './pages/marketing/Collection'
 import Cart from './pages/marketing/Cart'
 import Navbar from './components/Navbar'
@@ -20,7 +21,10 @@ import AdminItemsList from './pages/admin/AdminItemsList'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminActivityLog from './pages/admin/AdminActivityLog'
 import OAuthSuccess from './pages/auth/OAuthSuccess'
+import Profile from './pages/marketing/Profile'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const App = () => {
   const location = useLocation()
@@ -35,18 +39,24 @@ const App = () => {
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
         <Route path='/product/:productID' element={<Product />} />
-        <Route path='/orders' element={<Orders />} />
-        <Route path='/place-order' element={<Placeorder />} />
+        <Route path='/orders' element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+        <Route path='/place-order' element={<ProtectedRoute><Placeorder /></ProtectedRoute>} />
         <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='/verify' element={<VerifyOtp />} />
         <Route path='/oauth-success' element={<OAuthSuccess />} />
         <Route path='/collections' element={<Collection />} />
-        <Route path='/cart' element={<Cart />} />
-        <Route path='/admin' element={<AdminLayout />}>
+        <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path='/cart' element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+        <Route path='/admin' element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
-          <Route path='add-items' element={<AdminAddItems />} />
+          <Route path='add-items' element={<AdminAddItems key="new" />} />
           <Route path='items' element={<AdminItemsList />} />
+          <Route path='items/:id/edit' element={<AdminAddItems />} />
           <Route path='orders' element={<AdminOrders />} />
           <Route path='users' element={<AdminUsers />} />
+          <Route path='activity' element={<AdminActivityLog />} />
+          <Route path='profile' element={<AdminSettings />} />
           <Route path='settings' element={<AdminSettings />} />
         </Route>
       </Routes>

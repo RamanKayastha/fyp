@@ -1,68 +1,153 @@
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import Title from '../../components/Title'
 import CartTotal from '../../components/CartTotal'
 import { assets } from '../../assets/frontend_assets/assets'
 import { ShopContext } from '../../context/ShopContext'
+import { useAuth } from '../../context/AuthContext'
+import { toast } from 'react-toastify'
+import { areasForCity, citiesForRegion, nepalRegions } from '../../data/nepalLocations'
 
+const inputClass = 'border border-gray-300 rounded py-1.5 px-3.5 w-full bg-white'
 
 const Placeorder = () => {
+  const [method, setMethod] = useState('cod')
+  const [saving, setSaving] = useState(false)
+  const { navigate, getCartCount, placeOrder } = useContext(ShopContext)
+  const { userDTO } = useAuth()
 
-  const [method, setMethod] = useState('cod');
-  
-  const {navigate} = useContext(ShopContext);
-  
+    const [form, setForm] = useState({
+    fullName: userDTO?.username || '',
+    region: '',
+    phone: userDTO?.contact || '',
+    city: '',
+    area: '',
+    landmark: '',
+  })
+
+  const cities = citiesForRegion(form.region)
+  const areas = areasForCity(form.region, form.city)
+
+  const updateForm = (key, value) => {
+    setForm((prev) => {
+      if (key === 'region') {
+        return { ...prev, region: value, city: '', area: '' }
+      }
+      if (key === 'city') {
+        return { ...prev, city: value, area: '' }
+      }
+      return { ...prev, [key]: value }
+    })
+  }
+
+  const handlePlaceOrder = async () => {
+    if (getCartCount() === 0) {
+      toast.error('Your cart is empty')
+      navigate('/cart')
+      return
+    }
+
+    const required = [
+      ['fullName', 'Full name is required'],
+      ['region', 'Region is required'],
+      ['phone', 'Phone number is required'],
+      ['city', 'City is required'],
+      ['area', 'Area is required'],
+      ['landmark', 'Street address / landmark is required'],
+    ]
+    const missing = required.find(([key]) => !String(form[key] || '').trim())
+    if (missing) {
+      toast.error(missing[1])
+      return
+    }
+
+    if (!/^9\d{9}$/.test(form.phone.trim())) {
+      toast.error('Enter a valid 10-digit phone number')
+      return
+    }
+
+    setSaving(true)
+    try {
+      await placeOrder({
+        ...form,
+        email: userDTO?.email || '',
+      }, method)
+      toast.success('Order placed successfully')
+      navigate('/orders')
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Failed to place order')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className='flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t'>
       <div className='flex flex-col gap-4 w-full sm:w-120'>
         <div className='text-xl sm:text-2xl my-3'>
           <Title text1={'DELIVERY'} text2={'INFORMATION'} />
         </div>
-        <div className='flex  gap-3'>
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='First Name' />
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='Last Name' />
-        </div>
 
         <input
-          className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-          type='email'
-          placeholder='Email' />
-        <input
-          className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
+          className={inputClass}
           type='text'
-          placeholder='Address' />
-        <div className='flex  gap-3'>
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='City' />
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='State' />
-        </div>
-        <div className='flex  gap-3'>
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='ZIP Code' />
-          <input
-            className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
-            type='text'
-            placeholder='Country' />
-        </div>
+          placeholder='Full Name'
+          value={form.fullName}
+          onChange={(e) => updateForm('fullName', e.target.value)}
+        />
+
+        <select
+          className={inputClass}
+          value={form.region}
+          onChange={(e) => updateForm('region', e.target.value)}
+        >
+          <option value=''>Select Region (Province)</option>
+          {nepalRegions.map((region) => (
+            <option key={region} value={region}>{region}</option>
+          ))}
+        </select>
+
         <input
-          className='border border-gray-300 rounded py-1.5 px-3.5 w-full'
+          className={inputClass}
           type='text'
-          placeholder='Phone Number' />
+          placeholder='Phone Number'
+          value={form.phone}
+          onChange={(e) => updateForm('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+          maxLength={10}
+        />
+
+        <select
+          className={inputClass}
+          value={form.city}
+          disabled={!form.region}
+          onChange={(e) => updateForm('city', e.target.value)}
+        >
+          <option value=''>{form.region ? 'Select City' : 'Select region first'}</option>
+          {cities.map((city) => (
+            <option key={city} value={city}>{city}</option>
+          ))}
+        </select>
+
+        <select
+          className={inputClass}
+          value={form.area}
+          disabled={!form.city}
+          onChange={(e) => updateForm('area', e.target.value)}
+        >
+          <option value=''>{form.city ? 'Select Area' : 'Select city first'}</option>
+          {areas.map((area) => (
+            <option key={area} value={area}>{area}</option>
+          ))}
+        </select>
+
+        <input
+          className={inputClass}
+          type='text'
+          placeholder='Street address / Landmark'
+          value={form.landmark}
+          onChange={(e) => updateForm('landmark', e.target.value)}
+        />
       </div>
 
-      {/* right side */}
       <div className='mt-8'>
         <div className='mt-8 min-w-80'>
           <CartTotal />
@@ -70,7 +155,6 @@ const Placeorder = () => {
 
         <div className='mt-12'>
           <Title text1={'PAYMENT'} text2={'METHOD'} />
-          {/* payment method  */}
           <div className='flex gap-3 flex-col lg:flex-row'>
             <div onClick={() => setMethod('khalti')} className='flex items-center gap-3  p-2 px-3 cursor-pointer '>
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'khalti' ? 'bg-black' : ''}`}></p>
@@ -87,11 +171,17 @@ const Placeorder = () => {
           </div>
 
           <div className='w-full text-end mt-8'>
-            <button onClick={() => navigate('/orders')} className='bg-black text-white px-16 py-3 cursor-pointer'>Place Order</button>
+            <button
+              type='button'
+              disabled={saving}
+              onClick={handlePlaceOrder}
+              className='bg-black text-white px-16 py-3 cursor-pointer disabled:opacity-60'
+            >
+              {saving ? 'Placing...' : 'Place Order'}
+            </button>
           </div>
         </div>
       </div>
-
     </div>
   )
 }

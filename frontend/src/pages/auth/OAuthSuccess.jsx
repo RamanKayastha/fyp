@@ -27,10 +27,9 @@ function OAuthSuccess() {
         console.log("Before login");
 
         login(token, response.data);
-        console.log("After login");
 
         setTimeout(() => {
-          navigate("/");
+          navigate(response.data?.role === "ADMIN" ? "/admin" : "/");
         }, 100);
         console.log("After navigate");
       } catch (error) {

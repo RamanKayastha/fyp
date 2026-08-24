@@ -1,0 +1,108 @@
+export const nepalLocations = {
+  Koshi: {
+    Biratnagar: ['Traffic Chowk', 'Rani', 'Bargachhi', 'Hatkhola', 'Buddha Chowk', 'Kanchanbari'],
+    Dharan: ['Bhanu Chowk', 'B.P. Chowk', 'Chatara Line', 'Ghopa', 'Bhedetar Road'],
+    Itahari: ['Bus Park', 'Dulari', 'Khanar', 'Sundarharaincha', 'Tarahara'],
+    Damak: ['Bus Park', 'Urlabari Road', 'Beldangi', 'Highway Chowk'],
+    Birtamod: ['Birtamod Bazaar', 'Sanischare', 'Charali', 'Bhadrapur Road'],
+    Dhankuta: ['Dhankuta Bazaar', 'Hile', 'Bhedetar'],
+  },
+  Madhesh: {
+    Janakpur: ['Ramanand Chowk', 'Bhanu Chowk', 'Pidari', 'Railway Station', 'Mills Area'],
+    Birgunj: ['Ghantaghar', 'Adarshnagar', 'Bindabasini', 'Maisthan', 'Jeetpur Road'],
+    Kalaiya: ['Kalaiya Bazaar', 'Bus Park', 'Simraungadh Road'],
+    Rajbiraj: ['Rajbiraj Bazaar', 'Bus Park', 'Kankalini'],
+    Lahan: ['Lahan Bazaar', 'Bus Park', 'Highway Chowk'],
+    Jaleshwor: ['Jaleshwor Bazaar', 'Bus Park'],
+  },
+  Bagmati: {
+    Kathmandu: [
+      'Thamel',
+      'New Baneshwor',
+      'Old Baneshwor',
+      'Kalanki',
+      'Kalimati',
+      'Maharajgunj',
+      'Baluwatar',
+      'Lazimpat',
+      'Naxal',
+      'Chabahil',
+      'Koteshwor',
+      'Tinkune',
+      'Gongabu',
+      'Balaju',
+      'New Road',
+      'Putalisadak',
+      'Bouddha',
+      'Jorpati',
+      'Sinamangal',
+      'Tokha',
+    ],
+    Lalitpur: [
+      'Jawalakhel',
+      'Patan',
+      'Lagankhel',
+      'Pulchowk',
+      'Satdobato',
+      'Gwarko',
+      'Imadol',
+      'Sanepa',
+      'Kupondole',
+      'Ekantakuna',
+    ],
+    Bhaktapur: ['Suryabinayak', 'Kamalbinayak', 'Thimi', 'Katunje', 'Jagati', 'Durbar Square'],
+    Hetauda: ['Hetauda Bazaar', 'Bus Park', 'Industrial District', 'Nawalpur'],
+    Bharatpur: ['Narayangadh', 'Pulchowk', 'Krishnapur', 'Hakim Chowk'],
+    Banepa: ['Banepa Bazaar', 'Dhulikhel Road', 'Kavre'],
+  },
+  Gandaki: {
+    Pokhara: [
+      'Lakeside',
+      'Damside',
+      'Mahendrapul',
+      'Prithvi Chowk',
+      'Bagar',
+      'Chipledhunga',
+      'New Road',
+      'Airport',
+      'Lekhnath',
+    ],
+    Damauli: ['Damauli Bazaar', 'Bus Park'],
+    Waling: ['Waling Bazaar', 'Highway'],
+    Baglung: ['Baglung Bazaar', 'Bus Park'],
+    Gorkha: ['Gorkha Bazaar', 'Palungtar'],
+    Besisahar: ['Besisahar Bazaar', 'Bus Park'],
+    Kushma: ['Kushma Bazaar', 'Bridge Area'],
+  },
+  Lumbini: {
+    Butwal: ['Traffic Chowk', 'Bus Park', 'Golpark', 'Kalikanagar', 'Yogikuti'],
+    Siddharthanagar: ['Bhairahawa Bazaar', 'Belahiya', 'Airport'],
+    Nepalgunj: ['DHQ Chowk', 'Bus Park', 'Surkhet Road', 'Rani Talau'],
+    Ghorahi: ['Ghorahi Bazaar', 'Bus Park'],
+    Tulsipur: ['Tulsipur Bazaar', 'Airport'],
+    Tansen: ['Tansen Bazaar', 'Bus Park'],
+    Taulihawa: ['Taulihawa Bazaar', 'Bus Park'],
+  },
+  Karnali: {
+    Birendranagar: ['Itram', 'Kalagaun', 'Bus Park', 'Airport'],
+    Jumla: ['Khalanga', 'Jumla Bazaar'],
+    Dailekh: ['Narayan', 'Dullu Road'],
+    Dullu: ['Dullu Bazaar'],
+    Musicot: ['Musicot Bazaar'],
+  },
+  Sudurpashchim: {
+    Dhangadhi: ['Hasanpur', 'Chauraha', 'Bus Park', 'Airport', 'Attariya'],
+    Bhimdatta: ['Mahendranagar Bazaar', 'Campus Road', 'Gaddachauki'],
+    Tikapur: ['Tikapur Bazaar', 'Bus Park'],
+    Dipayal: ['Silgadhi', 'Dipayal Bazaar'],
+    Amargadhi: ['Dadeldhura Bazaar'],
+  },
+}
+
+export const nepalRegions = Object.keys(nepalLocations)
+
+export const citiesForRegion = (region) =>
+  region && nepalLocations[region] ? Object.keys(nepalLocations[region]) : []
+
+export const areasForCity = (region, city) =>
+  region && city && nepalLocations[region]?.[city] ? nepalLocations[region][city] : []
