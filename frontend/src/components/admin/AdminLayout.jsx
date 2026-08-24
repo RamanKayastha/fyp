@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { assets } from '../../assets/frontend_assets/assets'
+import { useAuth } from '../../context/AuthContext'
 
 const navItems = [
     { label: 'Dashboard', path: '/admin' },
@@ -8,12 +9,23 @@ const navItems = [
     { label: 'Items List', path: '/admin/items' },
     { label: 'Orders', path: '/admin/orders' },
     { label: 'Users', path: '/admin/users' },
-    { label: 'Settings', path: '/admin/settings' },
+    { label: 'Activity Log', path: '/admin/activity' },
+    { label: 'Profile', path: '/admin/profile' },
 ]
 
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
+    const { userDTO, logout } = useAuth()
+    const navigate = useNavigate()
+
+    const displayName = userDTO?.username || 'Admin'
+    const initials = displayName.trim().charAt(0).toUpperCase()
+
+    const handleLogout = () => {
+        logout()
+        navigate('/login')
+    }
 
     const sidebar = (
         <aside className="h-full w-72 border-r bg-white">
@@ -101,15 +113,39 @@ const AdminLayout = () => {
                                     onClick={() => setProfileOpen((prev) => !prev)}
                                     className="flex items-center gap-3 rounded-full border bg-white py-1 pl-1 pr-3 hover:bg-gray-50"
                                 >
-                                    <span className="grid h-9 w-9 place-items-center rounded-full bg-black text-sm font-medium text-white">A</span>
-                                    <span className="hidden text-sm font-medium sm:block">Admin</span>
+                                    <span className="grid h-9 w-9 place-items-center rounded-full bg-black text-sm font-medium text-white">{initials}</span>
+                                    <span className="hidden max-w-32 truncate text-sm font-medium sm:block">{displayName}</span>
                                 </button>
 
                                 {profileOpen && (
                                     <div className="absolute right-0 mt-3 w-44 rounded-2xl border bg-white p-2 text-sm shadow-lg">
-                                        <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-gray-100">Profile</button>
-                                        <button type="button" className="block w-full rounded-xl px-3 py-2 text-left hover:bg-gray-100">Account</button>
-                                        <button type="button" className="block w-full rounded-xl px-3 py-2 text-left text-red-500 hover:bg-red-50">Logout</button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setProfileOpen(false)
+                                                navigate('/admin/profile')
+                                            }}
+                                            className="block w-full rounded-xl px-3 py-2 text-left hover:bg-gray-100"
+                                        >
+                                            Profile
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setProfileOpen(false)
+                                                navigate('/admin/activity')
+                                            }}
+                                            className="block w-full rounded-xl px-3 py-2 text-left hover:bg-gray-100"
+                                        >
+                                            Activity Log
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleLogout}
+                                            className="block w-full rounded-xl px-3 py-2 text-left text-red-500 hover:bg-red-50"
+                                        >
+                                            Logout
+                                        </button>
                                     </div>
                                 )}
                             </div>

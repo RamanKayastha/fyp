@@ -6,7 +6,11 @@ import Title from './Title';
 const CartTotal = () => {
 
 
-    const { currency, delivery_fee, getCartAmount } = useContext(ShopContext);
+    const { currency, delivery_fee, getCartAmount, getCartCount } = useContext(ShopContext);
+
+    if (getCartCount() === 0) {
+        return null;
+    }
 
     return (
         <div className='w-full'>

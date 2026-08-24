@@ -1,15 +1,58 @@
-import React from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { products } from '../../assets/frontend_assets/assets'
+import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
+import { getProducts } from '../../api/products'
+import { getUsers } from '../../api/users'
+import { getAllOrders } from '../../api/orders'
+
+const formatCategory = (category) => {
+    if (category === 'MEN') return 'Men'
+    if (category === 'WOMEN') return 'Women'
+    return category || '—'
+}
 
 const AdminDashboard = () => {
-    const latestProducts = products.slice(0, 4)
+    const [products, setProducts] = useState([])
+    const [users, setUsers] = useState([])
+    const [orders, setOrders] = useState([])
+
+    useEffect(() => {
+        let cancelled = false
+
+        Promise.all([getProducts(), getUsers(), getAllOrders()])
+            .then(([productResponse, userResponse, orderResponse]) => {
+                if (cancelled) return
+                setProducts(productResponse.data || [])
+                setUsers(userResponse.data || [])
+                setOrders(orderResponse.data || [])
+            })
+            .catch(() => {
+                if (!cancelled) toast.error('Failed to load dashboard data')
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [])
+
+    const latestProducts = [...products].sort((a, b) => b.id - a.id).slice(0, 4)
+    const pendingOrders = orders.filter((order) => order.status === 'PENDING').length
+    const revenue = orders
+        .filter((order) => order.status !== 'CANCELLED')
+        .reduce((sum, order) => sum + Number(order.total || 0), 0)
+    const fulfillmentSteps = [
+        { label: 'Pending', status: 'PENDING' },
+        { label: 'Packing', status: 'PACKING' },
+        { label: 'Ready to Ship', status: 'READY_TO_SHIP' },
+        { label: 'Out for Delivery', status: 'OUT_FOR_DELIVERY' },
+        { label: 'Delivered', status: 'DELIVERED' },
+    ]
     const metrics = [
-        { label: 'Revenue', value: 'Rs. 128,400', helper: '+12.4% this month' },
-        { label: 'Orders', value: '248', helper: '36 pending' },
-        { label: 'Products', value: products.length, helper: '8 drafts' },
-        { label: 'Customers', value: '1,924', helper: '+84 new users' },
+        { label: 'Revenue', value: `Rs. ${revenue}`, helper: 'From placed orders' },
+        { label: 'Orders', value: orders.length, helper: `${pendingOrders} pending` },
+        { label: 'Products', value: products.length, helper: 'Live catalog items' },
+        { label: 'Customers', value: users.length, helper: `${users.filter((user) => user.role === 'ADMIN').length} admins` },
     ]
 
     return (
@@ -43,36 +86,51 @@ const AdminDashboard = () => {
 
                     <div className="space-y-4">
                         {latestProducts.map((product) => (
-                            <div key={product._id} className="flex items-center gap-4 rounded-2xl border p-3">
-                                <img src={product.image[0]} alt={product.name} className="h-16 w-16 rounded-2xl object-cover" />
+                            <div key={product.id} className="flex items-center gap-4 rounded-2xl border p-3">
+                                <img src={product.imageUrl} alt={product.name} className="h-16 w-16 rounded-2xl object-cover bg-gray-100" />
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate font-medium text-black">{product.name}</p>
-                                    <p className="text-sm text-gray-500">{product.category} / {product.subCategory}</p>
+                                    <p className="text-sm text-gray-500">{formatCategory(product.category)} · Stock {product.stock ?? 0}</p>
                                 </div>
-                                <StatusBadge tone="success">Active</StatusBadge>
+                                <StatusBadge tone={(product.stock ?? 0) > 0 ? 'success' : 'danger'}>
+                                    {(product.stock ?? 0) > 0 ? 'Active' : 'Out of Stock'}
+                                </StatusBadge>
                             </div>
                         ))}
+
+                        {!latestProducts.length && (
+                            <p className="py-6 text-center text-sm text-gray-500">No products yet. Add your first item to the catalog.</p>
+                        )}
                     </div>
                 </AdminCard>
 
                 <AdminCard>
-                    <h3 className="text-lg font-semibold text-black">Order Flow</h3>
-                    <p className="mt-1 text-sm text-gray-500">Today&apos;s fulfillment status</p>
+                    <div className="mb-1 flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-black">Order Flow</h3>
+                            <p className="mt-1 text-sm text-gray-500">Current fulfillment status</p>
+                        </div>
+                        <Link to="/admin/orders" className="text-sm font-medium text-black underline">View all</Link>
+                    </div>
                     <div className="mt-6 space-y-4">
-                        {['Pending', 'Packing', 'Ready to Ship', 'Out for Delivery', 'Delivered'].map((item, index) => (
-                            <div key={item} className="flex items-center gap-3">
-                                <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-xs text-white">{index + 1}</span>
-                                <div className="flex-1">
-                                    <div className="flex justify-between text-sm">
-                                        <span>{item}</span>
-                                        <span className="text-gray-400">{18 - index * 3}</span>
-                                    </div>
-                                    <div className="mt-2 h-2 rounded-full bg-gray-100">
-                                        <div className="h-full rounded-full bg-black" style={{ width: `${90 - index * 12}%` }} />
+                        {fulfillmentSteps.map((item, index) => {
+                            const count = orders.filter((order) => order.status === item.status).length
+                            const width = orders.length ? Math.max(8, Math.round((count / orders.length) * 100)) : 0
+                            return (
+                                <div key={item.status} className="flex items-center gap-3">
+                                    <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-xs text-white">{index + 1}</span>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between text-sm">
+                                            <span>{item.label}</span>
+                                            <span className="text-gray-400">{count}</span>
+                                        </div>
+                                        <div className="mt-2 h-2 rounded-full bg-gray-100">
+                                            <div className="h-full rounded-full bg-black" style={{ width: `${width}%` }} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </AdminCard>
             </div>
