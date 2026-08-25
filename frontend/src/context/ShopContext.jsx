@@ -1,9 +1,10 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { getProducts } from "../api/products";
 import { createOrder } from "../api/orders";
+import { isCustomizableProduct } from "../utils/productFlags";
 
 export const ShopContext = createContext();
 
@@ -24,6 +25,7 @@ const toShopProduct = (product) => {
         image: images,
         category: formatCategory(product.category),
         sizes: product.sizes || [],
+        customizable: isCustomizableProduct(product),
     };
 };
 
@@ -36,14 +38,18 @@ const ShopContextProvider = (props) => {
     const [search, setSearch] = useState("");
     const [showSearch, setShowSearch] = useState(false);
     const [cartItems, setCartItems] = useState({});
+    const [customLines, setCustomLines] = useState([]);
     const [cartReady, setCartReady] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated, userDTO } = useAuth();
 
-    const refreshProducts = () =>
-        getProducts()
-            .then((response) => (response.data || []).map(toShopProduct))
-            .then(setProducts);
+    const refreshProducts = useCallback(
+        () =>
+            getProducts()
+                .then((response) => (response.data || []).map(toShopProduct))
+                .then(setProducts),
+        []
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -65,21 +71,39 @@ const ShopContextProvider = (props) => {
     useEffect(() => {
         if (!userDTO?.id) {
             setCartItems({});
+            setCustomLines([]);
             setCartReady(false);
             return;
         }
 
         const stored = localStorage.getItem(cartStorageKey(userDTO.id));
-        setCartItems(stored ? JSON.parse(stored) : {});
+        if (!stored) {
+            setCartItems({});
+            setCustomLines([]);
+            setCartReady(true);
+            return;
+        }
+
+        const parsed = JSON.parse(stored);
+        if (parsed.items || parsed.customLines) {
+            setCartItems(parsed.items || {});
+            setCustomLines(parsed.customLines || []);
+        } else {
+            setCartItems(parsed);
+            setCustomLines([]);
+        }
         setCartReady(true);
     }, [userDTO?.id]);
 
     useEffect(() => {
         if (!cartReady || !userDTO?.id) return;
-        localStorage.setItem(cartStorageKey(userDTO.id), JSON.stringify(cartItems));
-    }, [cartItems, cartReady, userDTO?.id]);
+        localStorage.setItem(cartStorageKey(userDTO.id), JSON.stringify({
+            items: cartItems,
+            customLines,
+        }));
+    }, [cartItems, customLines, cartReady, userDTO?.id]);
 
-    const addToCart = async (itemId, size) => {
+    const addToCart = async (itemId, size, customization = null) => {
         if (!isAuthenticated) {
             toast.error("Please log in to add items to cart");
             navigate("/login");
@@ -94,6 +118,21 @@ const ShopContextProvider = (props) => {
         const product = products.find((item) => item._id === String(itemId));
         if (product && (product.stock ?? 0) <= 0) {
             toast.error("This product is out of stock");
+            return;
+        }
+
+        if (customization) {
+            setCustomLines((prev) => [
+                ...prev,
+                {
+                    lineId: `${itemId}-${size}-${Date.now()}`,
+                    productId: String(itemId),
+                    size,
+                    quantity: 1,
+                    customization,
+                },
+            ]);
+            toast.success("Customized item added to cart");
             return;
         }
 
@@ -121,7 +160,7 @@ const ShopContextProvider = (props) => {
                 }
             }
         }
-        return totalCount;
+        return totalCount + customLines.reduce((sum, line) => sum + (line.quantity || 0), 0);
     };
 
     const getCartItems = () => {
@@ -138,13 +177,30 @@ const ShopContextProvider = (props) => {
                 }
             }
         }
-        return items;
+        return items.concat(customLines.map((line) => ({
+            productId: Number(line.productId),
+            size: line.size,
+            quantity: line.quantity,
+            customized: true,
+            previewFront: line.customization?.previewFront || null,
+            previewBack: line.customization?.previewBack || null,
+        })));
     };
 
-    const updateQuantity = async (itemId, size, quantity) => {
+    const updateQuantity = async (itemId, size, quantity, lineId = null) => {
+        const nextQuantity = Number(quantity);
+        if (lineId) {
+            setCustomLines((prev) => {
+                if (Number.isNaN(nextQuantity) || nextQuantity < 1) {
+                    return prev.filter((line) => line.lineId !== lineId);
+                }
+                return prev.map((line) => line.lineId === lineId ? { ...line, quantity: nextQuantity } : line);
+            });
+            return;
+        }
+
         let cartData = structuredClone(cartItems);
         if (!cartData[itemId]) return;
-        const nextQuantity = Number(quantity);
         if (Number.isNaN(nextQuantity) || nextQuantity < 1) {
             cartData[itemId][size] = 0;
         } else {
@@ -166,7 +222,11 @@ const ShopContextProvider = (props) => {
                 }
             }
         }
-        return totalAmount;
+        return totalAmount + customLines.reduce((sum, line) => {
+            const itemInfo = products.find((product) => product._id === String(line.productId));
+            if (!itemInfo) return sum;
+            return sum + line.quantity * Number(itemInfo.price);
+        }, 0);
     };
 
     const placeOrder = async (delivery, paymentMethod) => {
@@ -182,6 +242,7 @@ const ShopContextProvider = (props) => {
         });
 
         setCartItems({});
+        setCustomLines([]);
         if (userDTO?.id) {
             localStorage.removeItem(cartStorageKey(userDTO.id));
         }
@@ -198,6 +259,7 @@ const ShopContextProvider = (props) => {
         showSearch,
         setShowSearch,
         cartItems,
+        customLines,
         setCartItems,
         addToCart,
         getCartCount,
@@ -205,6 +267,7 @@ const ShopContextProvider = (props) => {
         updateQuantity,
         getCartAmount,
         placeOrder,
+        refreshProducts,
         navigate,
     };
 

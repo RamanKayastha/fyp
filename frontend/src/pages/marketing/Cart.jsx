@@ -7,7 +7,7 @@ import CartTotal from '../../components/CartTotal';
 
 const Cart = () => {
 
-  const { products, currency, cartItems, updateQuantity, navigate } = useContext(ShopContext);
+  const { products, currency, cartItems, customLines, updateQuantity, navigate } = useContext(ShopContext);
 
   const [cartData, setCartData] = useState([]);
 
@@ -33,7 +33,7 @@ const Cart = () => {
         <Title text1="YOUR" text2="CART" />
       </div>
 
-      {!cartData.length && (
+      {!cartData.length && !(customLines || []).length && (
         <p className='text-sm text-gray-500'>
           Your cart is empty. <Link to="/collections" className='underline text-black'>Browse products</Link>
         </p>
@@ -62,12 +62,48 @@ const Cart = () => {
             )
           })
         }
+        {(customLines || []).map((line) => {
+          const productData = products.find((product) => product._id === String(line.productId));
+          if (!productData) return null;
+          return (
+            <div key={line.lineId} className='py-4 border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4'>
+              <div className='flex items-center gap-6'>
+                <img
+                  className='w-16 sm:w-20'
+                  src={line.customization?.previewFront || productData.image?.[0]}
+                  alt={productData.name}
+                />
+                <div>
+                  <p className='text-xs sm:text-lg font-medium'>{productData.name}</p>
+                  <p className='mt-1 text-[10px] uppercase tracking-wide text-gray-500'>Customized</p>
+                  <div className='flex items-center gap-5 mt-2'>
+                    <p>{currency}{productData.price}</p>
+                    <p className='px-2 sm:px-3 sm:py-1 bg-slate-50'>{line.size}</p>
+                  </div>
+                </div>
+              </div>
+              <input
+                className='max-w-10 sm:max-w-15 px-1 sm:px-2 py-1 bg-slate-50'
+                type="number"
+                min="1"
+                value={line.quantity}
+                onChange={(e) => updateQuantity(line.productId, line.size, parseInt(e.target.value), line.lineId)}
+              />
+              <img
+                onClick={() => updateQuantity(line.productId, line.size, 0, line.lineId)}
+                className='w-4 mr-4 sm:w-5 cursor-pointer'
+                src={assets.bin_icon}
+                alt=''
+              />
+            </div>
+          )
+        })}
       </div>
       
       <div className='flex justify-end my-20'>
         <div className='w-full sm:w-112.5'>
           <CartTotal />
-          {cartData.length > 0 && (
+          {(cartData.length > 0 || (customLines || []).length > 0) && (
             <div className='w-full text-end'>
               <button onClick={() => navigate('/place-order')} className ='bg-black text-white py-2 px-6 transition cursor-pointer active:bg-gray-700'>PROCEED TO CHECKOUT</button>
             </div>

@@ -4,7 +4,7 @@ import { assets } from '../assets/frontend_assets/assets'
 const OutPolicy = () => {
   return (
     <div>
-        <div className='flex flex-col sm:flex-row justify-around gap-12 sm:gap-2 text-center py-20 text-xs sm:text-sm md:text-base text-gray-600 '>
+        <div className='flex flex-col sm:flex-row justify-around gap-8 sm:gap-2 text-center py-10 sm:py-20 text-xs sm:text-sm md:text-base text-gray-600 '>
             <div>
                 <img src={assets.exchange_icon} className='w-12 m-auto mb-5' alt="out_policy" />
                 <p className='font-semibold'> EASY RETURN POLICY</p>

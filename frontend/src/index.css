@@ -1,6 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Prata&display=swap');
 @import "tailwindcss";
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+}
 
 a.active hr {
     display: block;
@@ -21,9 +32,34 @@ a.active hr {
     display: none;
 }
 
+.customizer-layer-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.customizer-layer-scroll::-webkit-scrollbar {
+    display: block;
+    width: 6px;
+}
+
+.customizer-layer-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.customizer-layer-scroll::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 999px;
+}
+
 @media (max-width: 640px) {
-    a.active{
+    .shop-mobile-nav a.active {
         background-color: black;
         color: white;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px;
     }
 }

@@ -82,7 +82,7 @@ const Profile = () => {
 
   return (
     <div className='border-t pt-14 min-h-[60vh]'>
-      <div className='text-2xl mb-8'>
+      <div className='text-2xl mb-8 text-center'>
         <Title text1='MY' text2='PROFILE' />
       </div>
 
@@ -153,13 +153,13 @@ const Profile = () => {
             />
           </div>
 
-          <div className='flex flex-wrap items-center gap-3 mt-2'>
+          <div className='mt-2 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-center'>
             {isEditing ? (
               <>
                 <button
                   type='submit'
                   disabled={loading}
-                  className='bg-black text-white py-2 px-6 transition cursor-pointer active:bg-gray-700 disabled:opacity-60'
+                  className='w-full sm:w-auto bg-black text-white py-2.5 px-6 transition cursor-pointer active:bg-gray-700 disabled:opacity-60'
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -167,7 +167,7 @@ const Profile = () => {
                   type='button'
                   onClick={handleCancel}
                   disabled={loading}
-                  className='border border-gray-400 text-gray-700 py-2 px-6 transition cursor-pointer hover:bg-slate-50'
+                  className='w-full sm:w-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
                 >
                   Cancel
                 </button>
@@ -176,7 +176,7 @@ const Profile = () => {
               <button
                 type='button'
                 onClick={() => setIsEditing(true)}
-                className='bg-black text-white py-2 px-6 transition cursor-pointer active:bg-gray-700'
+                className='w-full sm:w-auto bg-black text-white py-2.5 px-6 transition cursor-pointer active:bg-gray-700'
               >
                 Edit Profile
               </button>
@@ -185,14 +185,21 @@ const Profile = () => {
             <button
                 type='button'
                 onClick={() => navigate('/orders')}
-                className='border border-gray-400 text-gray-700 py-2 px-6 transition cursor-pointer hover:bg-slate-50'
+                className='w-full sm:w-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
               >
                 My Orders
               </button>
             <button
+                type='button'
+                onClick={() => navigate('/custom-orders')}
+                className='w-full sm:w-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
+              >
+                Custom Orders
+              </button>
+            <button
               type='button'
               onClick={handleLogout}
-              className='ml-auto border border-gray-400 text-gray-700 py-2 px-6 transition cursor-pointer hover:bg-slate-50'
+              className='w-full sm:w-auto sm:ml-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
             >
               Logout
             </button>

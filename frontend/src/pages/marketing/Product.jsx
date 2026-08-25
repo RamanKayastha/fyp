@@ -1,25 +1,56 @@
-import { useContext, useState } from 'react'
-import { useParams } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom';
 import { ShopContext } from '../../context/ShopContext';
-import { assets } from '../../assets/frontend_assets/assets';
 import RelatedProducts from '../../components/RelatedProducts';
+import { getProductById } from '../../api/products';
+import { isCustomizableProduct } from '../../utils/productFlags';
+
+const mapProduct = (product) => {
+  if (!product) return null
+  const images = product.images?.length
+    ? product.images
+    : (product.imageUrl ? [product.imageUrl] : product.image || [])
+  return {
+    ...product,
+    _id: String(product.id ?? product._id),
+    image: images,
+    customizable: isCustomizableProduct(product),
+  }
+}
 
 const Product = () => {
   const { productID } = useParams();
-  const { products, currency, addToCart } = useContext(ShopContext);
+  const navigate = useNavigate();
+  const { products, currency, addToCart, refreshProducts } = useContext(ShopContext);
   const [imageIndex, setImageIndex] = useState(0);
   const [size, setSize] = useState('');
+  const [freshProduct, setFreshProduct] = useState(null);
 
-  const productData = products.find((item) => item._id === String(productID));
+  const listedProduct = products.find((item) => item._id === String(productID));
+  const productData = freshProduct || listedProduct;
   const images = productData?.image || [];
   const displayImage = images[Math.min(imageIndex, Math.max(images.length - 1, 0))] || '';
+  const canCustomize = isCustomizableProduct(productData);
 
-  if (!products.length) {
-    return <div className="py-20 text-center text-sm text-gray-500">Loading product...</div>
-  }
+  useEffect(() => {
+    refreshProducts?.()
+    let cancelled = false
+    getProductById(productID)
+      .then((response) => {
+        if (!cancelled) setFreshProduct(mapProduct(response.data))
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [productID, refreshProducts])
 
   if (!productData) {
-    return <div className="py-20 text-center text-sm text-gray-500">Product not found.</div>
+    return (
+      <div className="py-20 text-center text-sm text-gray-500">
+        {products.length ? 'Product not found.' : 'Loading product...'}
+      </div>
+    )
   }
 
   return (
@@ -43,16 +74,11 @@ const Product = () => {
 
         <div className='flex-1'>
           <h1 className='font-medium text-2xl mt-2'>{productData.name}</h1>
-          <div className='flex items-center gap-1 mt-2'>
-            <img src={assets.star_icon} className="w-4 h-4" alt="" />
-            <img src={assets.star_icon} className="w-4 h-4" alt="" />
-            <img src={assets.star_icon} className="w-4 h-4" alt="" />
-            <img src={assets.star_icon} className="w-4 h-4" alt="" />
-            <img src={assets.star_dull_icon} className="w-4 h-4" alt="" />
-            <p className='pl-2'>(122)</p>
-          </div>
           <p className='mt-5 text-3xl font-medium'>{currency} {productData.price}</p>
           <p className='mt-5 text-sm text-gray-500 md:w-4/5'>{productData.description}</p>
+          {canCustomize && (
+            <p className='mt-3 inline-block border border-black px-3 py-1 text-xs uppercase tracking-wide'>Customizable</p>
+          )}
           <div className='flex flex-col gap-4 my-8'>
             <p>Select Size</p>
             <div className='flex gap-2'>
@@ -61,13 +87,24 @@ const Product = () => {
               ))}
             </div>
           </div>
-          <button
-            onClick={() => addToCart(productData._id, size)}
-            disabled={(productData.stock ?? 0) <= 0}
-            className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 cursor-pointer disabled:opacity-50'
-          >
-            {(productData.stock ?? 0) <= 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
-          </button>
+          <div className='flex flex-wrap gap-3'>
+            <button
+              onClick={() => addToCart(productData._id, size)}
+              disabled={(productData.stock ?? 0) <= 0}
+              className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 cursor-pointer disabled:opacity-50'
+            >
+              {(productData.stock ?? 0) <= 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+            </button>
+            {canCustomize && (
+              <button
+                type='button'
+                onClick={() => navigate(`/product/${productData._id}/customize${size ? `?size=${size}` : ''}`)}
+                disabled={(productData.stock ?? 0) <= 0}
+                className='border border-black px-8 py-3 text-sm cursor-pointer hover:bg-gray-50 disabled:opacity-50'>
+                CUSTOMIZE
+              </button>
+            )}
+          </div>
           <hr className='mt-8 sm:w-4/5' />
           <div className='text-sm text-gray-500 mt-5 flex flex-col gap-1 '>
             <p>100% Original Product</p>
@@ -80,7 +117,6 @@ const Product = () => {
       <div className='mt-20'>
         <div className='flex'>
           <b className='border px-5 py-3 text-sm'>Description</b>
-          <p className='border px-5 py-3 text-sm text-gray-500'>Reviews (122)</p>
         </div>
         <div className='flex flex-col gap-4 border border-t-0 px-6 py-6 text-sm text-gray-500'>
           <p>{productData.description}</p>

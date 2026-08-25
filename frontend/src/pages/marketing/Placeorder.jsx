@@ -12,7 +12,7 @@ const inputClass = 'border border-gray-300 rounded py-1.5 px-3.5 w-full bg-white
 const Placeorder = () => {
   const [method, setMethod] = useState('cod')
   const [saving, setSaving] = useState(false)
-  const { navigate, getCartCount, placeOrder } = useContext(ShopContext)
+  const { navigate, getCartCount, placeOrder, customLines } = useContext(ShopContext)
   const { userDTO } = useAuth()
 
     const [form, setForm] = useState({
@@ -67,12 +67,13 @@ const Placeorder = () => {
 
     setSaving(true)
     try {
+      const hasCustomItems = (customLines || []).length > 0
       await placeOrder({
         ...form,
         email: userDTO?.email || '',
       }, method)
       toast.success('Order placed successfully')
-      navigate('/orders')
+      navigate(hasCustomItems ? '/custom-orders' : '/orders')
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to place order')
     } finally {

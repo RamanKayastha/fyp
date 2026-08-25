@@ -8,12 +8,12 @@ export const AdminCard = ({ children, className = '' }) => (
 
 export const PageHeader = ({ eyebrow, title, description, action }) => (
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
+        <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-400">{eyebrow}</p>
             <h2 className="mt-2 text-2xl font-semibold text-black sm:text-3xl">{title}</h2>
             {description && <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">{description}</p>}
         </div>
-        {action}
+        {action ? <div className="shrink-0">{action}</div> : null}
     </div>
 )
 
@@ -47,7 +47,7 @@ export const inputClass = 'w-full rounded-2xl border bg-white px-4 py-3 text-sm 
 export const tableWrapperClass = 'overflow-hidden rounded-3xl border bg-white shadow-sm'
 
 export const Pagination = ({ page, totalPages, onPrev, onNext }) => (
-    <div className="flex items-center justify-between border-t px-5 py-4 text-sm text-gray-500">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-4 text-sm text-gray-500">
         <p>Page {page} of {totalPages}</p>
         <div className="flex gap-2">
             <button type="button" onClick={onPrev} disabled={page === 1} className="rounded-full border px-4 py-2 disabled:opacity-40">
@@ -62,7 +62,7 @@ export const Pagination = ({ page, totalPages, onPrev, onNext }) => (
 
 export const ConfirmModal = ({ title, message, confirmLabel = 'Confirm', onCancel, onConfirm }) => (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
-        <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+    <div className="w-full max-w-md rounded-3xl bg-white p-5 sm:p-6 shadow-xl">
             <h3 className="text-xl font-semibold text-black">{title}</h3>
             <p className="mt-3 text-sm leading-6 text-gray-500">{message}</p>
             <div className="mt-6 flex justify-end gap-3">

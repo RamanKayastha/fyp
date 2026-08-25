@@ -3,6 +3,8 @@ import axios from "axios";
 // BACKEND URL
 const api = axios.create({
   baseURL: "http://localhost:8080",
+  maxContentLength: 30 * 1024 * 1024,
+  maxBodyLength: 30 * 1024 * 1024,
 });
 
 // TOKEN SETUP

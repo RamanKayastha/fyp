@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { assets } from '../../assets/frontend_assets/assets'
 import { useAuth } from '../../context/AuthContext'
 
@@ -8,6 +8,7 @@ const navItems = [
     { label: 'Add Items', path: '/admin/add-items' },
     { label: 'Items List', path: '/admin/items' },
     { label: 'Orders', path: '/admin/orders' },
+    { label: 'Custom Orders', path: '/admin/custom-orders' },
     { label: 'Users', path: '/admin/users' },
     { label: 'Activity Log', path: '/admin/activity' },
     { label: 'Profile', path: '/admin/profile' },
@@ -30,9 +31,9 @@ const AdminLayout = () => {
     const sidebar = (
         <aside className="h-full w-72 border-r bg-white">
             <div className="flex h-20 items-center justify-between px-6">
-                <NavLink to="/admin" className="flex items-center gap-3">
-                    <img src={assets.logo} alt="Forever admin" className="w-36" />
-                </NavLink>
+                <Link to="/admin" className="flex items-center gap-3">
+                    <img src={assets.logo} alt="Stitch and Story admin" className="w-36" />
+                </Link>
                 <button
                     type="button"
                     onClick={() => setSidebarOpen(false)}
