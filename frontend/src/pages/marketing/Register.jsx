@@ -77,7 +77,7 @@ const Register = () => {
         variant="outlined"
       />
 
-      <div className='w-full flex justify-between text-sm mt-[-8px]'>
+      <div className='w-full flex flex-col sm:flex-row sm:justify-between gap-2 text-sm mt-[-8px]'>
         <p className='text-gray-500 cursor-pointer hover:text-gray-700'>Already Register?</p>
         <NavLink to="/login">
             <p className='cursor-pointer hover:text-gray-700' >Login</p>

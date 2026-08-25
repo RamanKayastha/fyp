@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { AdminCard, Field, PageHeader, inputClass } from '../../components/admin/AdminUI'
 import { assets } from '../../assets/admin_assets/assets'
 import { createProduct, getProductById, updateProduct } from '../../api/products'
 import { uploadImageToCloudinary } from '../../api/cloudinary'
+import { ShopContext } from '../../context/ShopContext'
+import { isCustomizableProduct } from '../../utils/productFlags'
 
 const IMAGE_SLOTS = 4
 
@@ -23,11 +25,13 @@ const emptyForm = {
   stock: '',
   images: [],
   sizes: [],
+  customizable: false,
 }
 
 const AdminAddItems = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { refreshProducts } = useContext(ShopContext)
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState(emptyForm)
@@ -61,6 +65,7 @@ const AdminAddItems = () => {
           stock: product.stock ?? '',
           images: existingImages,
           sizes: product.sizes || [],
+          customizable: isCustomizableProduct(product),
         })
         setFetchedId(id)
       })
@@ -155,6 +160,7 @@ const AdminAddItems = () => {
       imageUrl: images[0] || '',
       category: form.category,
       sizes: form.sizes,
+      customizable: Boolean(form.customizable),
     }
 
     setSaving(true)
@@ -163,10 +169,10 @@ const AdminAddItems = () => {
         await updateProduct(id, payload)
         toast.success('Product updated')
       } else {
-        console.log(payload)
         await createProduct(payload)
         toast.success('Product saved')
       }
+      await refreshProducts?.()
       navigate('/admin/items')
     } catch {
       toast.error(isEdit ? 'Failed to update product' : 'Failed to save product')
@@ -328,6 +334,20 @@ const AdminAddItems = () => {
                 </button>
               ))}
             </div>
+            <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={form.customizable}
+                onChange={(e) => updateForm('customizable', e.target.checked)}
+                className="h-4 w-4 accent-black"
+              />
+              <span>
+                <span className="font-medium text-black">Customizable</span>
+                <span className="ml-2 text-xs text-gray-400">
+                  Customers can design this item on the customizer
+                </span>
+              </span>
+            </label>
           </Field>
 
           <div className="flex flex-col gap-3 sm:flex-row">

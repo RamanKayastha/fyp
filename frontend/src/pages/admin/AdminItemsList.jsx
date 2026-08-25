@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { AdminCard, ConfirmModal, PageHeader, Pagination, StatusBadge, inputClass, tableWrapperClass } from '../../components/admin/AdminUI'
 import { deleteProduct, getProducts } from '../../api/products'
+import { isCustomizableProduct } from '../../utils/productFlags'
 
 const formatCategory = (category) => {
   if (category === 'MEN') return 'Men'
@@ -138,6 +139,7 @@ const AdminItemsList = () => {
                 <th className="px-5 py-4">Price</th>
                 <th className="px-5 py-4">Stock Status</th>
                 <th className="px-5 py-4">Sizes</th>
+                <th className="px-5 py-4">Customizable</th>
                 <th className="px-5 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -165,6 +167,7 @@ const AdminItemsList = () => {
                       <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
                     </td>
                     <td className="px-5 py-4">{(product.sizes || []).join(', ') || '—'}</td>
+                    <td className="px-5 py-4">{isCustomizableProduct(product) ? 'Yes' : 'No'}</td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">
                         <button

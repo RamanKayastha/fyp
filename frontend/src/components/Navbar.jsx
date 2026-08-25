@@ -105,7 +105,7 @@ const Navbar = () => {
                             onClick={() => setVisible(false)}
                             aria-hidden="true"
                         />
-                        <div className="absolute top-0 left-0 right-0 z-10 max-h-[min(85vh,100%)] overflow-y-auto rounded-b-2xl bg-white shadow-xl">
+                        <div className="shop-mobile-nav absolute top-0 left-0 right-0 z-10 max-h-[min(85vh,100%)] overflow-y-auto rounded-b-2xl bg-white shadow-xl">
                             <div className="flex flex-col text-gray-600">
                                 <div onClick={() => setVisible(false)} className="flex items-center gap-4 p-3 cursor-pointer">
                                     <img className="h-4 rotate-180" src={assets.dropdown_icon} alt="" />

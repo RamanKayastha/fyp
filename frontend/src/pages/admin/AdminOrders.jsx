@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge, inputClass, tableWrapperClass } from '../../components/admin/AdminUI'
 import { getAllOrders, updateOrderStatus } from '../../api/orders'
+import { isCustomizedItem } from '../../utils/orderFlags'
 
 const orderStatuses = ['PENDING', 'PACKING', 'READY_TO_SHIP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
 
@@ -43,7 +44,12 @@ const AdminOrders = () => {
     getAllOrders()
       .then((response) => {
         if (cancelled) return
-        const nextOrders = response.data || []
+        const nextOrders = (response.data || [])
+          .map((order) => ({
+            ...order,
+            items: (order.items || []).filter((item) => !isCustomizedItem(item)),
+          }))
+          .filter((order) => order.items.length)
         setOrders(nextOrders)
         setSelectedOrder((current) => current || nextOrders[0] || null)
       })
@@ -67,7 +73,11 @@ const AdminOrders = () => {
   const handleStatusChange = async (orderId, status) => {
     try {
       const response = await updateOrderStatus(orderId, status)
-      setOrders((prev) => prev.map((order) => (order.id === orderId ? response.data : order)))
+      const nextOrder = {
+        ...response.data,
+        items: (response.data.items || []).filter((item) => !isCustomizedItem(item)),
+      }
+      setOrders((prev) => prev.map((order) => (order.id === orderId ? nextOrder : order)))
       toast.success('Order status updated')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status')

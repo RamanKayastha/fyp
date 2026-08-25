@@ -3,7 +3,9 @@ import Home from './pages/Home'
 import About from './pages/marketing/About'
 import Contact from './pages/marketing/Contact'
 import Product from './pages/marketing/Product'
+import Customize from './pages/marketing/Customize'
 import Orders from './pages/marketing/Orders'
+import CustomOrders from './pages/marketing/CustomOrders'
 import Placeorder from './pages/marketing/Placeorder'
 import Login from './pages/marketing/Login'
 import Register from './pages/marketing/Register'
@@ -19,6 +21,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminAddItems from './pages/admin/AdminAddItems'
 import AdminItemsList from './pages/admin/AdminItemsList'
 import AdminOrders from './pages/admin/AdminOrders'
+import AdminCustomOrders from './pages/admin/AdminCustomOrders'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminActivityLog from './pages/admin/AdminActivityLog'
@@ -29,17 +32,24 @@ import ProtectedRoute from './components/ProtectedRoute'
 const App = () => {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const isCustomizeRoute = location.pathname.includes('/customize')
 
   return (
-    <div className={isAdminRoute ? '' : 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'}>
+    <div className={isAdminRoute || isCustomizeRoute ? '' : 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'}>
       <ToastContainer />
-      {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && (
+        <div className={isCustomizeRoute ? 'border-b border-slate-200 bg-white px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]' : ''}>
+          <Navbar />
+        </div>
+      )}
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
         <Route path='/product/:productID' element={<Product />} />
+        <Route path='/product/:productID/customize' element={<Customize />} />
         <Route path='/orders' element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+        <Route path='/custom-orders' element={<ProtectedRoute><CustomOrders /></ProtectedRoute>} />
         <Route path='/place-order' element={<ProtectedRoute><Placeorder /></ProtectedRoute>} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
@@ -54,13 +64,14 @@ const App = () => {
           <Route path='items' element={<AdminItemsList />} />
           <Route path='items/:id/edit' element={<AdminAddItems />} />
           <Route path='orders' element={<AdminOrders />} />
+          <Route path='custom-orders' element={<AdminCustomOrders />} />
           <Route path='users' element={<AdminUsers />} />
           <Route path='activity' element={<AdminActivityLog />} />
           <Route path='profile' element={<AdminSettings />} />
           <Route path='settings' element={<AdminSettings />} />
         </Route>
       </Routes>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isCustomizeRoute && <Footer />}
     </div>
   )
 }
