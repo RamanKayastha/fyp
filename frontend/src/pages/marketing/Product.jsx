@@ -57,9 +57,15 @@ const Product = () => {
     <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100'>
       <div className='flex gap-12 sm:gap-12 flex-col sm:flex-row'>
         <div className='flex-1 flex flex-col-reverse gap-3 sm:flex-row' >
-          <div className='flex sm:flex-col overflow-x-auto sm:overflow-y-scroll justify-between  sm:justify-normal sm:w-[19%] w-full'>
+          <div className='flex sm:flex-col overflow-x-auto sm:overflow-y-auto justify-start gap-2 sm:w-[19%] w-full'>
             {images.map((item, index) => (
-              <img onClick={() => setImageIndex(index)} src={item} alt={productData.name} key={index} className='w-[24%] sm:w-full sm:mb-3 flex shrink-0 cursor-pointer' />
+              <img
+                onClick={() => setImageIndex(index)}
+                src={item}
+                alt={productData.name}
+                key={index}
+                className={`h-20 w-20 sm:h-auto sm:w-full shrink-0 cursor-pointer object-cover ${index === imageIndex ? 'ring-1 ring-black' : ''}`}
+              />
             ))}
           </div>
 
