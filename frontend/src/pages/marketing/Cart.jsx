@@ -4,6 +4,7 @@ import Title from '../../components/Title';
 import { assets } from '../../assets/frontend_assets/assets';
 import { Link } from 'react-router-dom';
 import CartTotal from '../../components/CartTotal';
+import { lineUnitPrice } from '../../utils/pricing';
 
 const Cart = () => {
 
@@ -77,7 +78,7 @@ const Cart = () => {
                   <p className='text-xs sm:text-lg font-medium'>{productData.name}</p>
                   <p className='mt-1 text-[10px] uppercase tracking-wide text-gray-500'>Customized</p>
                   <div className='flex items-center gap-5 mt-2'>
-                    <p>{currency}{productData.price}</p>
+                    <p>{currency}{lineUnitPrice(productData, line.customization)}</p>
                     <p className='px-2 sm:px-3 sm:py-1 bg-slate-50'>{line.size}</p>
                   </div>
                 </div>

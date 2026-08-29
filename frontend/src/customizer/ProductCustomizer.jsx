@@ -30,6 +30,7 @@ import {
 import { TshirtMockup, getMockupSrc } from './TshirtMockup'
 import { PRESET_DESIGNS, svgToDataUrl } from './presets'
 import { downloadDataUrl, fileToDataUrl } from './exportDesign'
+import { LAYER_FEES, countDesignLayers, customizerUnitPrice } from '../utils/pricing'
 
 FabricObject.customProperties = ['name', 'excludeFromExport', 'presetName', 'layerId']
 
@@ -95,7 +96,7 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
           id: assignLayerId(object),
           label: isText
             ? `${object.text || 'Text'} (Text)`
-            : `${object.presetName || 'Artwork'} (${object.name === 'preset' ? 'Art' : 'Image'})`,
+            : `${object.presetName || 'Artwork'} (${object.name === 'preset' ? 'Graphics' : 'Image'})`,
           visible: object.visible !== false,
         }
       })
@@ -152,6 +153,12 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
       canvas.dispose()
       fabricRef.current = null
     }
+  }, [])
+
+  useEffect(() => {
+    const families = FONT_OPTIONS.map((font) => `24px "${font.value}"`)
+    Promise.all(families.map((spec) => document.fonts.load(spec).catch(() => {})))
+      .then(() => fabricRef.current?.requestRenderAll())
   }, [])
 
   useEffect(() => {
@@ -247,8 +254,20 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
     if (!canvas) return
     const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' })
     image.set({ name, presetName, layerId: newLayerId() })
-    image.scaleToWidth(PRINT_AREA.width * 0.62)
+    const maxSize = PRINT_AREA.width * (name === 'preset' ? 0.28 : 0.48)
+    image.scaleToWidth(maxSize)
+    if (image.getScaledHeight() > maxSize) {
+      image.scaleToHeight(maxSize)
+    }
     placeInPrintArea(image)
+    if (name === 'preset') {
+      const others = canvas.getObjects().filter((object) => object.name === 'preset' && !isGuide(object)).length
+      image.set({
+        left: image.left + ((others % 3) - 1) * 22,
+        top: image.top + Math.floor(others / 3) * 22,
+      })
+      fitObjectInPrintArea(image)
+    }
     canvas.add(image)
     canvas.setActiveObject(image)
     canvas.requestRenderAll()
@@ -405,6 +424,7 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
         renderSidePreview(designsRef.current.front, 'front'),
         renderSidePreview(designsRef.current.back, 'back'),
       ])
+      const layerCounts = countDesignLayers(designsRef.current.front, designsRef.current.back)
       setPreview({
         front,
         back,
@@ -416,6 +436,8 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
           front: extractDesignMeta(designsRef.current.front, null),
           back: extractDesignMeta(designsRef.current.back, null),
         },
+        layerCounts,
+        unitPrice: customizerUnitPrice(product, layerCounts),
       })
     } catch {
       toast.error('Could not generate preview')
@@ -437,6 +459,8 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
       previewFront: preview.front.garmentPreview,
       previewBack: preview.back.garmentPreview,
       meta: preview.meta,
+      layerCounts: preview.layerCounts,
+      unitPrice: preview.unitPrice,
       customized: true,
     })
     setPreview(null)
@@ -450,6 +474,13 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
 
   const activeCount = layers.length
   const paddedCount = String(activeCount).padStart(2, '0')
+  const layerCounts = countDesignLayers(designs.front, designs.back)
+  const unitPrice = customizerUnitPrice(product, layerCounts)
+  const priceBreakdown = [
+    layerCounts.text > 0 && { label: `Text ×${layerCounts.text}`, amount: layerCounts.text * LAYER_FEES.text },
+    layerCounts.image > 0 && { label: `Image ×${layerCounts.image}`, amount: layerCounts.image * LAYER_FEES.image },
+    layerCounts.graphics > 0 && { label: `Graphics ×${layerCounts.graphics}`, amount: layerCounts.graphics * LAYER_FEES.graphics },
+  ].filter(Boolean)
 
   return (
     <div className="flex min-h-[calc(100vh-88px)] flex-col bg-[#eef3f8] lg:flex-row">
@@ -505,7 +536,9 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
                   onChange={(event) => applyTextProps('fontFamily', event.target.value)}
                 >
                   {FONT_OPTIONS.map((font) => (
-                    <option key={font.value} value={font.value}>{font.label}</option>
+                    <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                      {font.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -715,7 +748,7 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
           </button>
         </div>
 
-        <div className="relative z-10 mx-6 mb-6 w-auto rounded-2xl border border-slate-100 bg-white p-5 shadow-lg lg:absolute lg:bottom-8 lg:right-8 lg:mx-0 lg:mb-0 lg:w-[220px]">
+        <div className="relative z-10 mx-6 mb-6 w-auto rounded-2xl border border-slate-100 bg-white p-5 shadow-lg lg:absolute lg:bottom-8 lg:right-8 lg:mx-0 lg:mb-0 lg:w-[240px]">
           <div className="flex items-start justify-between text-sm">
             <span className="text-slate-400">Garment</span>
             <span className="max-w-[120px] text-right font-medium text-slate-800">{product?.name || 'Classic Tee'}</span>
@@ -745,12 +778,24 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
           )}
           <div className="mt-3 flex items-start justify-between text-sm">
             <span className="text-slate-400">Active Layers</span>
-            <span className="font-medium text-slate-800">{paddedCount} Active</span>
+            <span className="font-medium text-slate-800">
+              {String(layerCounts.text + layerCounts.image + layerCounts.graphics).padStart(2, '0')} Active
+            </span>
           </div>
+          <div className="mt-3 flex items-start justify-between text-sm">
+            <span className="text-slate-400">Base</span>
+            <span className="font-medium text-slate-800">{currency}{Number(product?.price || 0)}</span>
+          </div>
+          {priceBreakdown.map((row) => (
+            <div key={row.label} className="mt-2 flex items-start justify-between text-sm">
+              <span className="text-slate-400">{row.label}</span>
+              <span className="font-medium text-slate-800">+{currency}{row.amount}</span>
+            </div>
+          ))}
           <div className="mt-4 border-t border-slate-100 pt-3">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Unit Price</p>
             <p className="mt-1 text-2xl font-semibold text-[#2563EB]">
-              {currency}{Number(product?.price || 0).toFixed(2)}
+              {currency}{unitPrice}
             </p>
           </div>
         </div>
@@ -762,6 +807,9 @@ const ProductCustomizer = ({ product, size, onSizeChange }) => {
             <h3 className="text-xl font-semibold text-black">Review your design</h3>
             <p className="mt-2 text-sm text-gray-500">
               Check both sides before adding this customized {product?.name} to your cart.
+            </p>
+            <p className="mt-3 text-lg font-semibold text-[#2563EB]">
+              {currency}{preview.unitPrice}
             </p>
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
               {['front', 'back'].map((value) => (
