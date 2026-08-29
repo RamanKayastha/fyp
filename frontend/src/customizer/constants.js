@@ -17,6 +17,10 @@ export const FONTS = [
   'Trebuchet MS',
   'Impact',
   'Comic Sans MS',
+  'Dancing Script',
+  'Great Vibes',
+  'Archivo Black',
+  'Zombie',
 ]
 
 export const DEFAULT_TEXT_PROPS = {
@@ -37,6 +41,10 @@ export const FONT_OPTIONS = [
   { value: 'Courier New', label: 'Courier / Mono' },
   { value: 'Impact', label: 'Impact / Bold' },
   { value: 'Comic Sans MS', label: 'Comic / Casual' },
+  { value: 'Dancing Script', label: 'Cursive' },
+  { value: 'Great Vibes', label: 'Segoe Script' },
+  { value: 'Archivo Black', label: 'Gill Sans Nova Ultra Bold' },
+  { value: 'Zombie', label: 'Zombie' },
 ]
 
 export const GUIDE_NAME = 'printGuide'

@@ -5,6 +5,7 @@ import { useAuth } from "./AuthContext";
 import { getProducts } from "../api/products";
 import { createOrder } from "../api/orders";
 import { isCustomizableProduct } from "../utils/productFlags";
+import { lineUnitPrice } from "../utils/pricing";
 
 export const ShopContext = createContext();
 
@@ -184,6 +185,11 @@ const ShopContextProvider = (props) => {
             customized: true,
             previewFront: line.customization?.previewFront || null,
             previewBack: line.customization?.previewBack || null,
+            textCount: line.customization?.layerCounts?.text || 0,
+            imageCount: line.customization?.layerCounts?.image || 0,
+            graphicsCount: line.customization?.layerCounts?.graphics
+              || line.customization?.layerCounts?.logo
+              || 0,
         })));
     };
 
@@ -225,7 +231,7 @@ const ShopContextProvider = (props) => {
         return totalAmount + customLines.reduce((sum, line) => {
             const itemInfo = products.find((product) => product._id === String(line.productId));
             if (!itemInfo) return sum;
-            return sum + line.quantity * Number(itemInfo.price);
+            return sum + line.quantity * lineUnitPrice(itemInfo, line.customization);
         }, 0);
     };
 
