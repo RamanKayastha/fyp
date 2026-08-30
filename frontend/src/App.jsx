@@ -7,6 +7,8 @@ import Customize from './pages/marketing/Customize'
 import Orders from './pages/marketing/Orders'
 import CustomOrders from './pages/marketing/CustomOrders'
 import Placeorder from './pages/marketing/Placeorder'
+import PaymentSuccess from './pages/marketing/PaymentSuccess'
+import PaymentFailure from './pages/marketing/PaymentFailure'
 import Login from './pages/marketing/Login'
 import Register from './pages/marketing/Register'
 import VerifyOtp from './pages/marketing/VerifyOtp'
@@ -51,6 +53,8 @@ const App = () => {
         <Route path='/orders' element={<ProtectedRoute><Orders /></ProtectedRoute>} />
         <Route path='/custom-orders' element={<ProtectedRoute><CustomOrders /></ProtectedRoute>} />
         <Route path='/place-order' element={<ProtectedRoute><Placeorder /></ProtectedRoute>} />
+        <Route path='/payment/success' element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+        <Route path='/payment/failure' element={<ProtectedRoute><PaymentFailure /></ProtectedRoute>} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='/verify' element={<VerifyOtp />} />

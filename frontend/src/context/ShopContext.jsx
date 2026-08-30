@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { getProducts } from "../api/products";
 import { createOrder } from "../api/orders";
+import { initiatePayment as startPayment } from "../api/payments";
 import { isCustomizableProduct } from "../utils/productFlags";
 import { lineUnitPrice } from "../utils/pricing";
 
@@ -247,13 +248,31 @@ const ShopContextProvider = (props) => {
             items,
         });
 
+        clearCart();
+        return response.data;
+    };
+
+    const initiatePayment = async (delivery) => {
+        const items = getCartItems();
+        if (!items.length) {
+            throw new Error("Your cart is empty");
+        }
+
+        const response = await startPayment({
+            ...delivery,
+            paymentMethod: "ESEWA",
+            items,
+        });
+        return response.data;
+    };
+
+    const clearCart = () => {
         setCartItems({});
         setCustomLines([]);
         if (userDTO?.id) {
             localStorage.removeItem(cartStorageKey(userDTO.id));
         }
-        await refreshProducts().catch(() => {});
-        return response.data;
+        refreshProducts().catch(() => {});
     };
 
     const value = {
@@ -273,6 +292,8 @@ const ShopContextProvider = (props) => {
         updateQuantity,
         getCartAmount,
         placeOrder,
+        initiatePayment,
+        clearCart,
         refreshProducts,
         navigate,
     };
