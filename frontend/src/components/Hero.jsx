@@ -17,7 +17,7 @@ const Hero = () => {
                     </div>
                 </div>
             </div>
-            <img src={assets.hero_img} alt="hero_img" className='w-full sm:w-1/2 max-h-80 sm:max-h-none object-cover' />
+            <img src={assets.homepic} alt="Stitch and Story" className='w-full sm:w-1/2 max-h-80 sm:max-h-none object-cover' />
         </div>
     );
 };

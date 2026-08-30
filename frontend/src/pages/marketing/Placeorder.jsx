@@ -12,7 +12,7 @@ const inputClass = 'border border-gray-300 rounded py-1.5 px-3.5 w-full bg-white
 const Placeorder = () => {
   const [method, setMethod] = useState('cod')
   const [saving, setSaving] = useState(false)
-  const { navigate, getCartCount, placeOrder, customLines } = useContext(ShopContext)
+  const { navigate, getCartCount, placeOrder, initiatePayment, customLines } = useContext(ShopContext)
   const { userDTO } = useAuth()
 
     const [form, setForm] = useState({
@@ -67,16 +67,37 @@ const Placeorder = () => {
 
     setSaving(true)
     try {
-      const hasCustomItems = (customLines || []).length > 0
-      await placeOrder({
+      const delivery = {
         ...form,
         email: userDTO?.email || '',
-      }, method)
-      toast.success('Order placed successfully')
-      navigate(hasCustomItems ? '/custom-orders' : '/orders')
+      }
+
+      if (method === 'cod') {
+        const hasCustomItems = (customLines || []).length > 0
+        await placeOrder(delivery, method)
+        toast.success('Order placed successfully')
+        navigate(hasCustomItems ? '/custom-orders' : '/orders')
+        return
+      }
+
+      const payment = await initiatePayment(delivery)
+      if (!payment?.formUrl || !payment?.formFields) {
+        throw new Error('eSewa did not return payment details')
+      }
+      const esewaForm = document.createElement('form')
+      esewaForm.method = 'POST'
+      esewaForm.action = payment.formUrl
+      Object.entries(payment.formFields).forEach(([name, value]) => {
+        const input = document.createElement('input')
+        input.type = 'hidden'
+        input.name = name
+        input.value = value ?? ''
+        esewaForm.appendChild(input)
+      })
+      document.body.appendChild(esewaForm)
+      esewaForm.submit()
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || 'Failed to place order')
-    } finally {
       setSaving(false)
     }
   }
@@ -157,13 +178,9 @@ const Placeorder = () => {
         <div className='mt-12'>
           <Title text1={'PAYMENT'} text2={'METHOD'} />
           <div className='flex gap-3 flex-col lg:flex-row'>
-            <div onClick={() => setMethod('khalti')} className='flex items-center gap-3  p-2 px-3 cursor-pointer '>
-              <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'khalti' ? 'bg-black' : ''}`}></p>
-              <img className='h-7 mx-4' src={assets.khalti_logo} alt="" />
-            </div>
             <div onClick={() => setMethod('esewa')} className='flex items-center gap-3  p-2 px-3 cursor-pointer '>
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'esewa' ? 'bg-black' : ''}`}></p>
-              <img className='h-7 mx-4' src={assets.esewa_logo} alt="" />
+              <img className='h-7 mx-4' src={assets.esewa_logo} alt="eSewa" />
             </div>
             <div onClick={() => setMethod('cod')} className='flex items-center gap-3  p-2 px-3 cursor-pointer '>
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cod' ? 'bg-black' : ''}`}></p>
@@ -178,7 +195,7 @@ const Placeorder = () => {
               onClick={handlePlaceOrder}
               className='bg-black text-white px-16 py-3 cursor-pointer disabled:opacity-60'
             >
-              {saving ? 'Placing...' : 'Place Order'}
+              {saving ? (method === 'cod' ? 'Placing...' : 'Redirecting...') : (method === 'cod' ? 'Place Order' : 'Pay with eSewa')}
             </button>
           </div>
         </div>
