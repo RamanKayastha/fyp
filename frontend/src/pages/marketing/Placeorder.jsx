@@ -172,7 +172,7 @@ const Placeorder = () => {
 
       <div className='mt-8'>
         <div className='mt-8 min-w-80'>
-          <CartTotal />
+          <CartTotal paymentMethod={method} />
         </div>
 
         <div className='mt-12'>

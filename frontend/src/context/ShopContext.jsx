@@ -6,7 +6,7 @@ import { getProducts } from "../api/products";
 import { createOrder } from "../api/orders";
 import { initiatePayment as startPayment } from "../api/payments";
 import { isCustomizableProduct } from "../utils/productFlags";
-import { lineUnitPrice } from "../utils/pricing";
+import { lineUnitPrice, DELIVERY_FEE, COD_FEE } from "../utils/pricing";
 
 export const ShopContext = createContext();
 
@@ -35,7 +35,8 @@ const cartStorageKey = (userId) => `cart_${userId}`;
 
 const ShopContextProvider = (props) => {
     const currency = "Rs.";
-    const delivery_fee = 10;
+    const delivery_fee = DELIVERY_FEE;
+    const cod_fee = COD_FEE;
     const [products, setProducts] = useState([]);
     const [search, setSearch] = useState("");
     const [showSearch, setShowSearch] = useState(false);
@@ -279,6 +280,7 @@ const ShopContextProvider = (props) => {
         products,
         currency,
         delivery_fee,
+        cod_fee,
         search,
         setSearch,
         showSearch,
