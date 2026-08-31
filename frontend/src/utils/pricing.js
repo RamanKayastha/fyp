@@ -42,3 +42,11 @@ export const lineUnitPrice = (product, customization) => {
   if (customization?.layerCounts) return customizerUnitPrice(product, customization.layerCounts)
   return Number(product?.price || 0)
 }
+
+export const DELIVERY_FEE = 100
+export const COD_FEE = 50
+
+export const isCodMethod = (method) => String(method || '').toLowerCase() === 'cod'
+
+export const checkoutFees = (method) =>
+  DELIVERY_FEE + (isCodMethod(method) ? COD_FEE : 0)
