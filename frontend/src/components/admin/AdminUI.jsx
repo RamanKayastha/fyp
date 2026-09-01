@@ -62,14 +62,14 @@ export const Pagination = ({ page, totalPages, onPrev, onNext }) => (
 
 export const ConfirmModal = ({ title, message, confirmLabel = 'Confirm', onCancel, onConfirm }) => (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
-    <div className="w-full max-w-md rounded-3xl bg-white p-5 sm:p-6 shadow-xl">
+    <div className="w-full max-w-md  bg-white p-5 sm:p-6 shadow-xl">
             <h3 className="text-xl font-semibold text-black">{title}</h3>
             <p className="mt-3 text-sm leading-6 text-gray-500">{message}</p>
             <div className="mt-6 flex justify-end gap-3">
-                <button type="button" onClick={onCancel} className="rounded-full border px-5 py-2 text-sm">
+                <button type="button" onClick={onCancel} className="border px-5 py-2 text-sm">
                     Cancel
                 </button>
-                <button type="button" onClick={onConfirm} className="rounded-full bg-black px-5 py-2 text-sm text-white">
+                <button type="button" onClick={onConfirm} className=" bg-black px-5 py-2 text-sm text-white">
                     {confirmLabel}
                 </button>
             </div>

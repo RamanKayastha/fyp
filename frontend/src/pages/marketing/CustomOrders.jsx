@@ -77,7 +77,7 @@ const CustomOrders = () => {
         {orders.map((order) => (
           <div key={order.id} className='py-6 border-b text-gray-700'>
             <div className='mb-4 flex flex-wrap items-center justify-between gap-2 text-sm'>
-              <p className='font-medium text-black'>Order #{order.id}</p>
+              <p className='font-medium text-black'>Order #{order.id}{order.shopName ? ` · ${order.shopName}` : ''}</p>
               <p className='text-gray-500'>{formatDate(order.createdAt)}</p>
             </div>
 

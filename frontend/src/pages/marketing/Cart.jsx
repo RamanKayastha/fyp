@@ -4,6 +4,7 @@ import Title from '../../components/Title';
 import { assets } from '../../assets/frontend_assets/assets';
 import { Link } from 'react-router-dom';
 import CartTotal from '../../components/CartTotal';
+import { ConfirmModal } from '../../components/admin/AdminUI';
 import { lineUnitPrice } from '../../utils/pricing';
 
 const Cart = () => {
@@ -11,6 +12,7 @@ const Cart = () => {
   const { products, currency, cartItems, customLines, updateQuantity, navigate } = useContext(ShopContext);
 
   const [cartData, setCartData] = useState([]);
+  const [itemToRemove, setItemToRemove] = useState(null);
 
   useEffect(() => {
     const tempData = [];
@@ -27,6 +29,25 @@ const Cart = () => {
     }
     setCartData(tempData);
   }, [cartItems]);
+
+  const askRemove = (itemId, size, name, lineId = null) => {
+    setItemToRemove({ itemId, size, name, lineId });
+  };
+
+  const confirmRemove = () => {
+    if (!itemToRemove) return;
+    updateQuantity(itemToRemove.itemId, itemToRemove.size, 0, itemToRemove.lineId);
+    setItemToRemove(null);
+  };
+
+  const handleQuantityChange = (itemId, size, rawValue, name, lineId = null) => {
+    const nextQuantity = parseInt(rawValue, 10);
+    if (Number.isNaN(nextQuantity) || nextQuantity < 1) {
+      askRemove(itemId, size, name, lineId);
+      return;
+    }
+    updateQuantity(itemId, size, nextQuantity, lineId);
+  };
 
   return (
     <div className='border-t pt-14'>
@@ -57,8 +78,8 @@ const Cart = () => {
                     </div>
                   </div>
                 </div>
-                <input className='max-w-10 sm:max-w-15 px-1 sm:px-2 py-1 bg-slate-50' type="number" min="1" value={item.quantity} onChange={(e) => updateQuantity(item._id, item.size, parseInt(e.target.value))} />
-                <img onClick={() => updateQuantity(item._id, item.size, 0)} className='w-4 mr-4 sm:w-5 cursor-pointer' src={assets.bin_icon} alt='' />
+                <input className='max-w-10 sm:max-w-15 px-1 sm:px-2 py-1 bg-slate-50' type="number" min="1" value={item.quantity} onChange={(e) => handleQuantityChange(item._id, item.size, e.target.value, productData.name)} />
+                <img onClick={() => askRemove(item._id, item.size, productData.name)} className='w-4 mr-4 sm:w-5 cursor-pointer' src={assets.bin_icon} alt='Remove from cart' />
               </div>
             )
           })
@@ -88,13 +109,13 @@ const Cart = () => {
                 type="number"
                 min="1"
                 value={line.quantity}
-                onChange={(e) => updateQuantity(line.productId, line.size, parseInt(e.target.value), line.lineId)}
+                onChange={(e) => handleQuantityChange(line.productId, line.size, e.target.value, productData.name, line.lineId)}
               />
               <img
-                onClick={() => updateQuantity(line.productId, line.size, 0, line.lineId)}
+                onClick={() => askRemove(line.productId, line.size, productData.name, line.lineId)}
                 className='w-4 mr-4 sm:w-5 cursor-pointer'
                 src={assets.bin_icon}
-                alt=''
+                alt='Remove from cart'
               />
             </div>
           )
@@ -111,6 +132,16 @@ const Cart = () => {
           )}
         </div>
       </div>
+
+      {itemToRemove && (
+        <ConfirmModal
+          title="Remove from cart?"
+          message={`Remove "${itemToRemove.name}" from your cart?`}
+          confirmLabel="Remove"
+          onCancel={() => setItemToRemove(null)}
+          onConfirm={confirmRemove}
+        />
+      )}
 
     </div>
   )

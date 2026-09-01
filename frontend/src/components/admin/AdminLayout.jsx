@@ -10,6 +10,7 @@ const navItems = [
     { label: 'Orders', path: '/admin/orders' },
     { label: 'Custom Orders', path: '/admin/custom-orders' },
     { label: 'Users', path: '/admin/users' },
+    { label: 'Vendors', path: '/admin/vendors' },
     { label: 'Activity Log', path: '/admin/activity' },
     { label: 'Profile', path: '/admin/profile' },
 ]

@@ -13,7 +13,11 @@ const emptyForm = {
   role: 'USER',
 }
 
-const formatRole = (role) => (role === 'ADMIN' ? 'Admin' : 'User')
+const formatRole = (role) => {
+  if (role === 'ADMIN') return 'Admin'
+  if (role === 'VENDOR') return 'Vendor'
+  return 'User'
+}
 const formatProvider = (provider) => (provider === 'GOOGLE' ? 'Google' : 'Local')
 
 const AdminUsers = () => {
@@ -199,6 +203,7 @@ const AdminUsers = () => {
           >
             <option value="All">All</option>
             <option value="USER">User</option>
+            <option value="VENDOR">Vendor</option>
             <option value="ADMIN">Admin</option>
           </select>
         </div>
@@ -340,6 +345,7 @@ const AdminUsers = () => {
                     className={inputClass}
                   >
                     <option value="USER">User</option>
+                    <option value="VENDOR">Vendor</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </Field>

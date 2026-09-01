@@ -4,11 +4,12 @@ import { FcGoogle } from 'react-icons/fc'
 import api from '../../api/axios';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { homePathForRole } from '../../utils/roles';
 
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated, isAdmin } = useAuth();
+  const { login, isAuthenticated, userDTO } = useAuth();
 
   const [form, setForm] = useState({
     email: '',
@@ -17,9 +18,9 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(isAdmin ? '/admin' : '/', { replace: true });
+      navigate(homePathForRole(userDTO?.role), { replace: true });
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated, userDTO, navigate]);
   
   const googleLogin = () => {
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
@@ -39,7 +40,7 @@ const Login = () => {
       const response = await api.post("/auth/login", form);
       const userData = response.data.userDTO;
       login(response.data.token, userData);
-      navigate(userData?.role === "ADMIN" ? "/admin" : "/");
+      navigate(homePathForRole(userData?.role));
     } catch (error) {
       console.log(error);
       alert("Invalid credentials");

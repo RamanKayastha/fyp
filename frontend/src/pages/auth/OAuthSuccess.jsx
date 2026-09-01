@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import { homePathForRole } from "../../utils/roles";
 
 function OAuthSuccess() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ function OAuthSuccess() {
         login(token, response.data);
 
         setTimeout(() => {
-          navigate(response.data?.role === "ADMIN" ? "/admin" : "/");
+          navigate(homePathForRole(response.data?.role));
         }, 100);
         console.log("After navigate");
       } catch (error) {

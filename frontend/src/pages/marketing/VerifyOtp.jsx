@@ -4,6 +4,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../api/axios'
+import { homePathForRole } from '../../utils/roles'
 
 const VerifyOtp = () => {
   const navigate = useNavigate()
@@ -33,7 +34,7 @@ const VerifyOtp = () => {
       const response = await api.post('/auth/verify', { email, otp })
       const userData = response.data.userDTO
       login(response.data.token, userData)
-      navigate(userData?.role === 'ADMIN' ? '/admin' : '/')
+      navigate(homePathForRole(userData?.role))
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid or expired code')
     } finally {

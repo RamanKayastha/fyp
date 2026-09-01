@@ -2,7 +2,7 @@ import { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 
-const ProductItem = ({ id, image, name, price, customizable }) => {
+const ProductItem = ({ id, image, name, price, customizable, shopName }) => {
     const { currency } = useContext(ShopContext);
     const imageSrc = Array.isArray(image) ? image[0] : image;
 
@@ -14,6 +14,7 @@ const ProductItem = ({ id, image, name, price, customizable }) => {
                 ) : null}
             </div>
             <p className='pt-3 pb-1 text-sm'>{name}</p>
+            {shopName && <p className='text-[10px] uppercase tracking-wide text-gray-400'>{shopName}</p>}
             <p className='font-medium text-xs'>{currency} {price}</p>
             {customizable && (
                 <p className='mt-1 text-[10px] uppercase tracking-wide text-gray-400'>Customizable</p>

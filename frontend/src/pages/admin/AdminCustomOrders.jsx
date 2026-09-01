@@ -4,8 +4,7 @@ import { AdminCard, PageHeader, StatusBadge, inputClass } from '../../components
 import DesignPreviewModal from '../../components/DesignPreviewModal'
 import { getAllOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
-
-const orderStatuses = ['PENDING', 'PACKING', 'READY_TO_SHIP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
+import { isTerminalStatus, statusOptionsFor } from '../../utils/orderStatus'
 
 const formatStatus = (status) =>
   (status || '')
@@ -91,10 +90,11 @@ const AdminCustomOrders = () => {
                 </StatusBadge>
                 <select
                   value={order.status}
+                  disabled={isTerminalStatus(order.status)}
                   onChange={(e) => handleStatusChange(order.id, e.target.value)}
                   className={`${inputClass} min-w-40 py-2`}
                 >
-                  {orderStatuses.map((status) => (
+                  {statusOptionsFor(order.status).map((status) => (
                     <option key={status} value={status}>{formatStatus(status)}</option>
                   ))}
                 </select>
