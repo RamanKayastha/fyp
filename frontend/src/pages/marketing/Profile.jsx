@@ -196,6 +196,24 @@ const Profile = () => {
               >
                 Custom Orders
               </button>
+            {userDTO.role === 'VENDOR' && (
+              <button
+                type='button'
+                onClick={() => navigate('/vendor')}
+                className='w-full sm:w-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
+              >
+                Vendor dashboard
+              </button>
+            )}
+            {userDTO.role === 'USER' && (
+              <button
+                type='button'
+                onClick={() => navigate('/become-vendor')}
+                className='w-full sm:w-auto border border-gray-400 text-gray-700 py-2.5 px-6 transition cursor-pointer hover:bg-slate-50'
+              >
+                Become a vendor
+              </button>
+            )}
             <button
               type='button'
               onClick={handleLogout}

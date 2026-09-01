@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
 
   const [isAuthenticated, setIsAuthenticated] = useState(!!token);
   const isAdmin = user?.role === "ADMIN";
+  const isVendor = user?.role === "VENDOR";
 
   useEffect(() => {
     if (token) {
@@ -78,6 +79,7 @@ export const AuthProvider = ({ children }) => {
         userDTO : user,
         isAuthenticated,
         isAdmin,
+        isVendor,
         login,
         logout,
       }}

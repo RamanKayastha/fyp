@@ -3,8 +3,7 @@ import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge, inputClass, tableWrapperClass } from '../../components/admin/AdminUI'
 import { getAllOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
-
-const orderStatuses = ['PENDING', 'PACKING', 'READY_TO_SHIP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']
+import { FULFILLMENT_STATUSES, isTerminalStatus, statusOptionsFor } from '../../utils/orderStatus'
 
 const formatStatus = (status) =>
   (status || '')
@@ -106,6 +105,7 @@ const AdminOrders = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-medium text-black">#{order.id}</p>
+                      <p className="mt-1 text-sm text-gray-500">{order.shopName || 'Stitch & Story'}</p>
                       <p className="mt-1 text-sm text-gray-500">{order.customerName || order.email}</p>
                     </div>
                     <StatusBadge tone={order.paymentMethod === 'COD' ? 'warning' : 'success'}>
@@ -129,10 +129,11 @@ const AdminOrders = () => {
                   <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
                     <select
                       value={order.status}
+                      disabled={isTerminalStatus(order.status)}
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       className={`${inputClass} py-2`}
                     >
-                      {orderStatuses.map((status) => (
+                      {statusOptionsFor(order.status).map((status) => (
                         <option key={status} value={status}>{formatStatus(status)}</option>
                       ))}
                     </select>
@@ -151,6 +152,7 @@ const AdminOrders = () => {
                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                   <tr>
                     <th className="px-4 py-4">Order ID</th>
+                    <th className="px-4 py-4">Shop</th>
                     <th className="px-4 py-4">Customer</th>
                     <th className="px-4 py-4">Product Details</th>
                     <th className="px-4 py-4">Qty</th>
@@ -167,6 +169,7 @@ const AdminOrders = () => {
                     return (
                       <tr key={order.id} className="hover:bg-gray-50">
                         <td className="px-4 py-4 font-medium text-black">#{order.id}</td>
+                        <td className="px-4 py-4">{order.shopName || 'Stitch & Story'}</td>
                         <td className="px-4 py-4">{order.customerName || order.email}</td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
@@ -188,10 +191,11 @@ const AdminOrders = () => {
                         <td className="px-4 py-4">
                           <select
                             value={order.status}
+                            disabled={isTerminalStatus(order.status)}
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
                             className={`${inputClass} min-w-40 py-2`}
                           >
-                            {orderStatuses.map((status) => (
+                            {statusOptionsFor(order.status).map((status) => (
                               <option key={status} value={status}>{formatStatus(status)}</option>
                             ))}
                           </select>
@@ -219,7 +223,7 @@ const AdminOrders = () => {
             <div className="mt-5 space-y-6">
               <div className="rounded-md bg-gray-50 p-4">
                 <p className="font-medium text-black">{selected.fullName || selected.customerName || selected.email}</p>
-                <p className="mt-1 text-sm text-gray-500">#{selected.id}</p>
+                <p className="mt-1 text-sm text-gray-500">#{selected.id} · {selected.shopName || 'Stitch & Story'}</p>
                 <p className="mt-3 text-sm text-gray-600">{fullAddress(selected)}</p>
                 <p className="mt-2 text-sm text-gray-500">{selected.phone}</p>
               </div>
@@ -247,8 +251,8 @@ const AdminOrders = () => {
               <div>
                 <p className="mb-4 text-sm font-medium text-gray-700">Timeline</p>
                 <div className="space-y-4">
-                  {orderStatuses.slice(0, 5).map((status) => {
-                    const active = orderStatuses.indexOf(status) <= orderStatuses.indexOf(selected.status) && selected.status !== 'CANCELLED'
+                  {FULFILLMENT_STATUSES.map((status) => {
+                    const active = FULFILLMENT_STATUSES.indexOf(status) <= FULFILLMENT_STATUSES.indexOf(selected.status) && selected.status !== 'CANCELLED'
                     return (
                       <div key={status} className="flex gap-3">
                         <span className={`mt-1 h-3 w-3 rounded-full ${active ? 'bg-black' : 'bg-gray-200'}`} />

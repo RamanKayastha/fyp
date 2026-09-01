@@ -29,17 +29,23 @@ import AdminSettings from './pages/admin/AdminSettings'
 import AdminActivityLog from './pages/admin/AdminActivityLog'
 import OAuthSuccess from './pages/auth/OAuthSuccess'
 import Profile from './pages/marketing/Profile'
+import BecomeVendor from './pages/marketing/BecomeVendor'
 import ProtectedRoute from './components/ProtectedRoute'
+import VendorLayout from './components/vendor/VendorLayout'
+import VendorDashboard from './pages/vendor/VendorDashboard'
+import AdminVendors from './pages/admin/AdminVendors'
 
 const App = () => {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const isVendorRoute = location.pathname.startsWith('/vendor')
   const isCustomizeRoute = location.pathname.includes('/customize')
+  const isStaffRoute = isAdminRoute || isVendorRoute
 
   return (
-    <div className={isAdminRoute || isCustomizeRoute ? '' : 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'}>
+    <div className={isStaffRoute || isCustomizeRoute ? '' : 'px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'}>
       <ToastContainer />
-      {!isAdminRoute && (
+      {!isStaffRoute && (
         <div className={isCustomizeRoute ? 'border-b border-slate-200 bg-white px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]' : ''}>
           <Navbar />
         </div>
@@ -61,7 +67,17 @@ const App = () => {
         <Route path='/oauth-success' element={<OAuthSuccess />} />
         <Route path='/collections' element={<Collection />} />
         <Route path='/profile' element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path='/become-vendor' element={<ProtectedRoute><BecomeVendor /></ProtectedRoute>} />
         <Route path='/cart' element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+        <Route path='/vendor' element={<ProtectedRoute vendorOnly><VendorLayout /></ProtectedRoute>}>
+          <Route index element={<VendorDashboard />} />
+          <Route path='add-items' element={<AdminAddItems key="vendor-new" />} />
+          <Route path='items' element={<AdminItemsList />} />
+          <Route path='items/:id/edit' element={<AdminAddItems />} />
+          <Route path='orders' element={<AdminOrders />} />
+          <Route path='custom-orders' element={<AdminCustomOrders />} />
+          <Route path='profile' element={<AdminSettings />} />
+        </Route>
         <Route path='/admin' element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path='add-items' element={<AdminAddItems key="new" />} />
@@ -70,12 +86,13 @@ const App = () => {
           <Route path='orders' element={<AdminOrders />} />
           <Route path='custom-orders' element={<AdminCustomOrders />} />
           <Route path='users' element={<AdminUsers />} />
+          <Route path='vendors' element={<AdminVendors />} />
           <Route path='activity' element={<AdminActivityLog />} />
           <Route path='profile' element={<AdminSettings />} />
           <Route path='settings' element={<AdminSettings />} />
         </Route>
       </Routes>
-      {!isAdminRoute && !isCustomizeRoute && <Footer />}
+      {!isStaffRoute && !isCustomizeRoute && <Footer />}
     </div>
   )
 }

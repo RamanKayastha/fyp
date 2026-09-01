@@ -80,6 +80,7 @@ const Product = () => {
 
         <div className='flex-1'>
           <h1 className='font-medium text-2xl mt-2'>{productData.name}</h1>
+          <p className='mt-2 text-sm text-gray-500'>Sold by {productData.shopName || 'Stitch & Story'}</p>
           <p className='mt-5 text-3xl font-medium'>{currency} {productData.price}</p>
           <p className='mt-5 text-sm text-gray-500 md:w-4/5'>{productData.description}</p>
           {canCustomize && (

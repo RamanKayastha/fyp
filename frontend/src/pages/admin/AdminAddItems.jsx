@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { AdminCard, Field, PageHeader, inputClass } from '../../components/admin/AdminUI'
 import { assets } from '../../assets/admin_assets/assets'
@@ -7,6 +7,7 @@ import { createProduct, getProductById, updateProduct } from '../../api/products
 import { uploadImageToCloudinary } from '../../api/cloudinary'
 import { ShopContext } from '../../context/ShopContext'
 import { isCustomizableProduct } from '../../utils/productFlags'
+import { staffBaseFromPath } from '../../utils/roles'
 
 const IMAGE_SLOTS = 4
 
@@ -31,6 +32,8 @@ const emptyForm = {
 const AdminAddItems = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const basePath = staffBaseFromPath(location.pathname)
   const { refreshProducts } = useContext(ShopContext)
   const isEdit = Boolean(id)
 
@@ -72,7 +75,7 @@ const AdminAddItems = () => {
       .catch(() => {
         if (cancelled) return
         toast.error('Product not found')
-        navigate('/admin/items')
+        navigate(`${basePath}/items`)
       })
 
     return () => {
@@ -173,7 +176,7 @@ const AdminAddItems = () => {
         toast.success('Product saved')
       }
       await refreshProducts?.()
-      navigate('/admin/items')
+      navigate(`${basePath}/items`)
     } catch {
       toast.error(isEdit ? 'Failed to update product' : 'Failed to save product')
     } finally {
@@ -183,7 +186,7 @@ const AdminAddItems = () => {
 
   const handleCancel = () => {
     if (isEdit) {
-      navigate('/admin/items')
+      navigate(`${basePath}/items`)
       return
     }
 
