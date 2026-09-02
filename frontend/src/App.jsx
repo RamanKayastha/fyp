@@ -33,6 +33,7 @@ import BecomeVendor from './pages/marketing/BecomeVendor'
 import ProtectedRoute from './components/ProtectedRoute'
 import VendorLayout from './components/vendor/VendorLayout'
 import VendorDashboard from './pages/vendor/VendorDashboard'
+import VendorSales from './pages/vendor/VendorSales'
 import AdminVendors from './pages/admin/AdminVendors'
 
 const App = () => {
@@ -71,6 +72,7 @@ const App = () => {
         <Route path='/cart' element={<ProtectedRoute><Cart /></ProtectedRoute>} />
         <Route path='/vendor' element={<ProtectedRoute vendorOnly><VendorLayout /></ProtectedRoute>}>
           <Route index element={<VendorDashboard />} />
+          <Route path='sales' element={<VendorSales />} />
           <Route path='add-items' element={<AdminAddItems key="vendor-new" />} />
           <Route path='items' element={<AdminItemsList />} />
           <Route path='items/:id/edit' element={<AdminAddItems />} />
@@ -80,6 +82,7 @@ const App = () => {
         </Route>
         <Route path='/admin' element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
+          <Route path='sales' element={<VendorSales />} />
           <Route path='add-items' element={<AdminAddItems key="new" />} />
           <Route path='items' element={<AdminItemsList />} />
           <Route path='items/:id/edit' element={<AdminAddItems />} />

@@ -27,8 +27,11 @@ api.interceptors.response.use(
       const method = (error.config?.method || "").toLowerCase();
       const isPublicProductRead =
         method === "get" && requestUrl.includes("/api/products");
+      const payload = error.response?.data;
+      const looksLikeHtml =
+        typeof payload === "string" && payload.trim().startsWith("<");
 
-      if (!isPublicProductRead) {
+      if (!isPublicProductRead && !looksLikeHtml) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
 
