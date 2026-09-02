@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import Title from '../../components/Title'
 import { useAuth } from '../../context/AuthContext'
-import { applyAsVendor, getMyVendorApplication } from '../../api/vendors'
+import { applyAsVendor, getMyVendorApplication, getVendorApplicationDocument } from '../../api/vendors'
 import { homePathForRole } from '../../utils/roles'
 
 const emptyForm = {
@@ -19,8 +19,10 @@ const BecomeVendor = () => {
   const { userDTO, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState(emptyForm)
+  const [proof, setProof] = useState(null)
   const [application, setApplication] = useState(undefined)
   const [saving, setSaving] = useState(false)
+  const [openingDoc, setOpeningDoc] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -51,12 +53,31 @@ const BecomeVendor = () => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  const openProof = async (id) => {
+    setOpeningDoc(true)
+    try {
+      const response = await getVendorApplicationDocument(id)
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener')
+    } catch {
+      toast.error('Could not open document')
+    } finally {
+      setOpeningDoc(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!proof) {
+      toast.error('Please upload a proof document')
+      return
+    }
     setSaving(true)
     try {
-      const response = await applyAsVendor(form)
+      const response = await applyAsVendor({ ...form, proof })
       setApplication(response.data)
+      setProof(null)
       toast.success('Application submitted. We will review it shortly.')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit application')
@@ -90,6 +111,19 @@ const BecomeVendor = () => {
           <div className='mb-6 border border-gray-200 bg-slate-50 p-4'>
             <p className='font-medium text-black'>Application pending</p>
             <p className='mt-2'>Shop: {application.shopName}</p>
+            {application.proofDocumentName && (
+              <p className='mt-1'>Proof: {application.proofDocumentName}</p>
+            )}
+            {application.proofUploaded && (
+              <button
+                type='button'
+                disabled={openingDoc}
+                onClick={() => openProof(application.id)}
+                className='mt-3 underline text-black disabled:opacity-60'
+              >
+                {openingDoc ? 'Opening...' : 'View uploaded document'}
+              </button>
+            )}
             <p className='mt-1 text-gray-500'>You'll be able to list products after an admin approves this application.</p>
           </div>
         )}
@@ -109,6 +143,18 @@ const BecomeVendor = () => {
             <textarea className='border px-3 py-2' rows={3} placeholder='Workshop / pickup address' value={form.address} onChange={(e) => updateForm('address', e.target.value)} required />
             <input className='border px-3 py-2' placeholder='Citizenship / PAN number' value={form.idDocument} onChange={(e) => updateForm('idDocument', e.target.value)} required />
             <input className='border px-3 py-2' placeholder='eSewa or bank payout account' value={form.payoutAccount} onChange={(e) => updateForm('payoutAccount', e.target.value)} required />
+            <div>
+              <label className='mb-1 block text-gray-700'>Proof document (citizenship, PAN, or shop registration)</label>
+              <input
+                className='border px-3 py-2 w-full'
+                type='file'
+                accept='.pdf,.jpg,.jpeg,.png,.webp,.gif,.doc,.docx,application/pdf,image/*'
+                onChange={(e) => setProof(e.target.files?.[0] || null)}
+                required
+              />
+              {proof && <p className='mt-1 text-xs text-black'>{proof.name}</p>}
+              <p className='mt-1 text-xs text-gray-500'>PDF, image, or Word file. Max 10 MB.</p>
+            </div>
             <textarea className='border px-3 py-2' rows={3} placeholder='Anything else we should know (optional)' value={form.note} onChange={(e) => updateForm('note', e.target.value)} />
             <button type='submit' disabled={saving} className='bg-black text-white py-3 disabled:opacity-60'>
               {saving ? 'Submitting...' : 'Submit application'}

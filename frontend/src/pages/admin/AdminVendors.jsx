@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge, inputClass } from '../../components/admin/AdminUI'
-import { getVendorApplications, reviewVendorApplication } from '../../api/vendors'
+import { getVendorApplications, getVendorApplicationDocument, reviewVendorApplication } from '../../api/vendors'
 
 const formatStatus = (status) =>
   (status || '')
@@ -14,6 +14,7 @@ const AdminVendors = () => {
   const [loading, setLoading] = useState(true)
   const [note, setNote] = useState({})
   const [savingId, setSavingId] = useState(null)
+  const [openingId, setOpeningId] = useState(null)
 
   const load = () =>
     getVendorApplications()
@@ -30,6 +31,20 @@ const AdminVendors = () => {
       cancelled = true
     }
   }, [])
+
+  const openProof = async (id) => {
+    setOpeningId(id)
+    try {
+      const response = await getVendorApplicationDocument(id)
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' })
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener')
+    } catch {
+      toast.error('Could not open document')
+    } finally {
+      setOpeningId(null)
+    }
+  }
 
   const review = async (id, status) => {
     setSavingId(id)
@@ -77,6 +92,17 @@ const AdminVendors = () => {
               <p>Address: {item.address}</p>
               <p>ID / PAN: {item.idDocument}</p>
               <p>Payout: {item.payoutAccount}</p>
+              {item.proofDocumentName && <p>Proof: {item.proofDocumentName}</p>}
+              {item.proofUploaded && (
+                <button
+                  type="button"
+                  disabled={openingId === item.id}
+                  onClick={() => openProof(item.id)}
+                  className="mt-1 w-fit text-left underline text-black disabled:opacity-60"
+                >
+                  {openingId === item.id ? 'Opening...' : 'View document'}
+                </button>
+              )}
               {item.note && <p>Note: {item.note}</p>}
               {item.adminNote && <p>Admin note: {item.adminNote}</p>}
             </div>

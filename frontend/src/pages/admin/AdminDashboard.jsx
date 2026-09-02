@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge } from '../../components/admin/AdminUI'
 import { getProducts } from '../../api/products'
-import { getUsers } from '../../api/users'
-import { getAllOrders } from '../../api/orders'
+import { getAllOrders, getSales } from '../../api/orders'
+
+const money = (value) => `Rs. ${Number(value || 0).toLocaleString()}`
 
 const formatCategory = (category) => {
     if (category === 'MEN') return 'Men'
@@ -14,18 +15,18 @@ const formatCategory = (category) => {
 
 const AdminDashboard = () => {
     const [products, setProducts] = useState([])
-    const [users, setUsers] = useState([])
     const [orders, setOrders] = useState([])
+    const [sales, setSales] = useState(null)
 
     useEffect(() => {
         let cancelled = false
 
-        Promise.all([getProducts(), getUsers(), getAllOrders()])
-            .then(([productResponse, userResponse, orderResponse]) => {
+        Promise.all([getProducts(), getAllOrders(), getSales({ period: 'month' })])
+            .then(([productResponse, orderResponse, salesResponse]) => {
                 if (cancelled) return
                 setProducts(productResponse.data || [])
-                setUsers(userResponse.data || [])
                 setOrders(orderResponse.data || [])
+                setSales(salesResponse.data)
             })
             .catch(() => {
                 if (!cancelled) toast.error('Failed to load dashboard data')
@@ -49,10 +50,10 @@ const AdminDashboard = () => {
         { label: 'Delivered', status: 'DELIVERED' },
     ]
     const metrics = [
+        { label: 'Commission (10%)', value: money(sales?.commission), helper: 'This month from vendor sales' },
         { label: 'Revenue', value: `Rs. ${revenue}`, helper: 'From placed orders' },
         { label: 'Orders', value: orders.length, helper: `${pendingOrders} pending` },
         { label: 'Products', value: products.length, helper: 'Live catalog items' },
-        { label: 'Customers', value: users.length, helper: `${users.filter((user) => user.role === 'ADMIN').length} admins` },
     ]
 
     return (
@@ -61,7 +62,7 @@ const AdminDashboard = () => {
                 eyebrow="Overview"
                 title="Dashboard"
                 description="A calm, focused overview of store performance, recent products, and operational status."
-                action={<Link to="/admin/add-items" className=" bg-black px-5 py-3 text-sm text-white">Add Product</Link>}
+                action={<Link to="/admin/sales" className=" bg-black px-5 py-3 text-sm text-white">View sales</Link>}
             />
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { TextField } from '@mui/material'
+import { IconButton, InputAdornment, TextField } from '@mui/material'
 import { FcGoogle } from 'react-icons/fc'
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 import api from '../../api/axios';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { homePathForRole } from '../../utils/roles';
+import { toast } from 'react-toastify';
 
 
 const Login = () => {
@@ -15,6 +17,8 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -35,15 +39,33 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const email = form.email.trim();
+    const password = form.password;
+
+    if (!email && !password) {
+      toast.error('Email and password are required');
+      return;
+    }
+    if (!email) {
+      toast.error('Email is required');
+      return;
+    }
+    if (!password) {
+      toast.error('Password is required');
+      return;
+    }
+
+    setSaving(true);
 
     try {
-      const response = await api.post("/auth/login", form);
+      const response = await api.post("/auth/login", { email, password });
       const userData = response.data.userDTO;
       login(response.data.token, userData);
       navigate(homePathForRole(userData?.role));
     } catch (error) {
-      console.log(error);
-      alert("Invalid credentials");
+      toast.error(error.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -61,27 +83,55 @@ const Login = () => {
         onChange={handleChange}
         value={form.email}
         variant="outlined"
+        disabled={saving}
       />
     
       <TextField
         fullWidth
         label="Password"
-        type="password"
+        type={showPassword ? 'text' : 'password'}
         name="password"
         onChange={handleChange}
         value={form.password} 
         variant="outlined"
+        disabled={saving}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  edge="end"
+                  disabled={saving}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
       />
 
-      <div className='w-full flex justify-between text-sm mt-[-8px]'>
-        <p className='text-gray-500 cursor-pointer hover:text-gray-700'>Forgot Password?</p>
+      <div className='w-full flex justify-end text-sm mt-[-8px]'>
         <NavLink to="/register">
           <p className='cursor-pointer hover:text-gray-700' >Create account</p>
         </NavLink>
       </div>
 
-      <button type='submit' className='w-full bg-black text-white p-2'>Login</button>
-      <button onClick={googleLogin} type='button' className='w-full flex items-center justify-center gap-2 bg-white text-black p-2 border '>
+      <button
+        type='submit'
+        disabled={saving}
+        className='w-full bg-black text-white p-2 cursor-pointer disabled:cursor-wait disabled:opacity-70'
+      >
+        {saving ? 'Signing in...' : 'Login'}
+      </button>
+      <button
+        onClick={googleLogin}
+        type='button'
+        disabled={saving}
+        className='w-full flex items-center justify-center gap-2 bg-white text-black p-2 border cursor-pointer disabled:opacity-70'
+      >
         <FcGoogle className='w-5 h-5' />
         Login with Google
       </button>
