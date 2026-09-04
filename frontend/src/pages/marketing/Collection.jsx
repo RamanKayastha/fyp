@@ -53,6 +53,7 @@ const Collection = () => {
             <p className='flex gap-2'>
               <input className='w-3 cursor-pointer' type="checkbox" value={'Women'} onChange={toggleCategory} />Women
             </p>
+          
           </div>
         </div>
       </div>

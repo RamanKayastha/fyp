@@ -4,6 +4,7 @@ import { AdminCard, PageHeader, StatusBadge, inputClass, tableWrapperClass } fro
 import { getAllOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
 import { FULFILLMENT_STATUSES, isTerminalStatus, statusOptionsFor } from '../../utils/orderStatus'
+import DeliveryMap from '../../components/DeliveryMap'
 
 const formatStatus = (status) =>
   (status || '')
@@ -70,6 +71,7 @@ const AdminOrders = () => {
   )
 
   const handleStatusChange = async (orderId, status) => {
+    if (status === 'CANCELLED' && !window.confirm('Cancel this order?')) return
     try {
       const response = await updateOrderStatus(orderId, status)
       const nextOrder = {
@@ -77,7 +79,7 @@ const AdminOrders = () => {
         items: (response.data.items || []).filter((item) => !isCustomizedItem(item)),
       }
       setOrders((prev) => prev.map((order) => (order.id === orderId ? nextOrder : order)))
-      toast.success('Order status updated')
+      toast.success(status === 'CANCELLED' ? 'Order cancelled' : 'Order status updated')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status')
     }
@@ -226,6 +228,12 @@ const AdminOrders = () => {
                 <p className="mt-1 text-sm text-gray-500">#{selected.id} · {selected.shopName || 'Stitch & Story'}</p>
                 <p className="mt-3 text-sm text-gray-600">{fullAddress(selected)}</p>
                 <p className="mt-2 text-sm text-gray-500">{selected.phone}</p>
+                <DeliveryMap
+                  className="mt-3"
+                  city={selected.city}
+                  latitude={selected.latitude}
+                  longitude={selected.longitude}
+                />
               </div>
 
               <div>

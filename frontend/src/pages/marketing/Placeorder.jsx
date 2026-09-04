@@ -6,6 +6,7 @@ import { ShopContext } from '../../context/ShopContext'
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'react-toastify'
 import { areasForCity, citiesForRegion, nepalRegions } from '../../data/nepalLocations'
+import DeliveryMap from '../../components/DeliveryMap'
 
 const inputClass = 'border border-gray-300 rounded py-1.5 px-3.5 w-full bg-white'
 
@@ -22,6 +23,8 @@ const Placeorder = () => {
     city: '',
     area: '',
     landmark: '',
+    latitude: null,
+    longitude: null,
   })
 
   const cities = citiesForRegion(form.region)
@@ -62,6 +65,11 @@ const Placeorder = () => {
 
     if (!/^9\d{9}$/.test(form.phone.trim())) {
       toast.error('Enter a valid 10-digit phone number')
+      return
+    }
+
+    if (form.latitude == null || form.longitude == null) {
+      toast.error('Mark your delivery location on the map')
       return
     }
 
@@ -167,6 +175,14 @@ const Placeorder = () => {
           placeholder='Street address / Landmark'
           value={form.landmark}
           onChange={(e) => updateForm('landmark', e.target.value)}
+        />
+
+        <DeliveryMap
+          selectable
+          city={form.city}
+          latitude={form.latitude}
+          longitude={form.longitude}
+          onChange={({ latitude, longitude }) => setForm((prev) => ({ ...prev, latitude, longitude }))}
         />
       </div>
 

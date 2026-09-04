@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Title from '../../components/Title'
 import DesignPreviewModal from '../../components/DesignPreviewModal'
-import { getMyOrders } from '../../api/orders'
+import { getMyOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
+import { isTerminalStatus } from '../../utils/orderStatus'
 import { toast } from 'react-toastify'
+import DeliveryMap from '../../components/DeliveryMap'
 
 const formatStatus = (status) =>
   (status || '')
@@ -28,6 +30,7 @@ const CustomOrders = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [previewItem, setPreviewItem] = useState(null)
+  const [cancellingId, setCancellingId] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -54,6 +57,24 @@ const CustomOrders = () => {
       cancelled = true
     }
   }, [])
+
+  const handleCancel = async (orderId) => {
+    if (!window.confirm('Cancel this order?')) return
+    setCancellingId(orderId)
+    try {
+      const response = await updateOrderStatus(orderId, 'CANCELLED')
+      setOrders((prev) => prev.map((order) => (
+        order.id === orderId
+          ? { ...response.data, items: (response.data.items || []).filter(isCustomizedItem) }
+          : order
+      )).filter((order) => order.items.length))
+      toast.success('Order cancelled')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to cancel order')
+    } finally {
+      setCancellingId(null)
+    }
+  }
 
   return (
     <div className='border-t pt-16'>
@@ -118,7 +139,23 @@ const CustomOrders = () => {
             ))}
 
             <p className='text-sm text-gray-500'>Deliver to: {[order.landmark, order.area || order.address, order.city, order.region || order.state].filter(Boolean).join(', ') || '—'}</p>
+            <DeliveryMap
+              className='mt-3 max-w-xl'
+              city={order.city}
+              latitude={order.latitude}
+              longitude={order.longitude}
+            />
             <p className='text-sm font-medium text-black'>Total: Rs. {order.total}</p>
+            {!isTerminalStatus(order.status) && (
+              <button
+                type='button'
+                disabled={cancellingId === order.id}
+                onClick={() => handleCancel(order.id)}
+                className='mt-3 border border-red-500 px-4 py-2 text-sm text-red-600 disabled:opacity-60'
+              >
+                {cancellingId === order.id ? 'Cancelling...' : 'Cancel order'}
+              </button>
+            )}
           </div>
         ))}
       </div>
