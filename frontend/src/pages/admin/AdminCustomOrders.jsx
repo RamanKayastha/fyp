@@ -5,6 +5,7 @@ import DesignPreviewModal from '../../components/DesignPreviewModal'
 import { getAllOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
 import { isTerminalStatus, statusOptionsFor } from '../../utils/orderStatus'
+import DeliveryMap from '../../components/DeliveryMap'
 
 const formatStatus = (status) =>
   (status || '')
@@ -49,6 +50,7 @@ const AdminCustomOrders = () => {
   }, [])
 
   const handleStatusChange = async (orderId, status) => {
+    if (status === 'CANCELLED' && !window.confirm('Cancel this order?')) return
     try {
       const response = await updateOrderStatus(orderId, status)
       setOrders((prev) => prev.map((order) => (
@@ -56,7 +58,7 @@ const AdminCustomOrders = () => {
           ? { ...response.data, items: (response.data.items || []).filter(isCustomizedItem) }
           : order
       )))
-      toast.success('Order status updated')
+      toast.success(status === 'CANCELLED' ? 'Order cancelled' : 'Order status updated')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status')
     }
@@ -83,6 +85,15 @@ const AdminCustomOrders = () => {
               <div>
                 <p className="font-medium text-black">#{order.id} · {order.customerName || order.email}</p>
                 <p className="mt-1 text-sm text-gray-500">{formatDate(order.createdAt)} · Rs. {order.total}</p>
+                <p className="mt-2 text-sm text-gray-600">
+                  {[order.landmark, order.area || order.address, order.city, order.region || order.state].filter(Boolean).join(', ') || '—'}
+                </p>
+                <DeliveryMap
+                  className="mt-3 max-w-xl"
+                  city={order.city}
+                  latitude={order.latitude}
+                  longitude={order.longitude}
+                />
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge tone={order.status === 'CANCELLED' ? 'danger' : order.status === 'DELIVERED' ? 'success' : 'warning'}>

@@ -14,6 +14,16 @@ video {
     max-width: 100%;
 }
 
+.leaflet-container {
+    z-index: 0;
+    height: 16rem;
+    width: 100%;
+}
+
+.leaflet-container img {
+    max-width: none;
+}
+
 a.active hr {
     display: block;
 }
