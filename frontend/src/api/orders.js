@@ -8,4 +8,6 @@ export const getAllOrders = () => api.get('/api/orders/all')
 
 export const updateOrderStatus = (id, status) => api.put(`/api/orders/${id}/status`, { status })
 
+export const markOrderRefunded = (id) => api.put(`/api/orders/${id}/refund`)
+
 export const getSales = (params) => api.get('/api/orders/sales', { params })

@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { AdminCard, PageHeader, StatusBadge, inputClass } from '../../components/admin/AdminUI'
 import DesignPreviewModal from '../../components/DesignPreviewModal'
-import { getAllOrders, updateOrderStatus } from '../../api/orders'
+import { getAllOrders, updateOrderStatus, markOrderRefunded } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
-import { isTerminalStatus, statusOptionsFor } from '../../utils/orderStatus'
+import { isTerminalStatus, statusOptionsFor, esewaRefundPercentFor } from '../../utils/orderStatus'
 import DeliveryMap from '../../components/DeliveryMap'
+import { useAuth } from '../../context/AuthContext'
 
 const formatStatus = (status) =>
   (status || '')
@@ -19,9 +20,11 @@ const formatDate = (value) => {
 }
 
 const AdminCustomOrders = () => {
+  const { isAdmin } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [previewItem, setPreviewItem] = useState(null)
+  const [refundingId, setRefundingId] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -50,7 +53,14 @@ const AdminCustomOrders = () => {
   }, [])
 
   const handleStatusChange = async (orderId, status) => {
-    if (status === 'CANCELLED' && !window.confirm('Cancel this order?')) return
+    if (status === 'CANCELLED') {
+      const order = orders.find((item) => item.id === orderId)
+      const percent = order?.paymentMethod === 'ESEWA' ? esewaRefundPercentFor(order.status) : null
+      const message = percent
+        ? `Cancel this eSewa order? Refund due: ${percent}% (Rs. ${((Number(order.total) * percent) / 100).toFixed(2)}).`
+        : 'Cancel this order?'
+      if (!window.confirm(message)) return
+    }
     try {
       const response = await updateOrderStatus(orderId, status)
       setOrders((prev) => prev.map((order) => (
@@ -61,6 +71,24 @@ const AdminCustomOrders = () => {
       toast.success(status === 'CANCELLED' ? 'Order cancelled' : 'Order status updated')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update status')
+    }
+  }
+
+  const handleMarkRefunded = async (orderId) => {
+    if (!window.confirm('Mark this eSewa refund as completed?')) return
+    setRefundingId(orderId)
+    try {
+      const response = await markOrderRefunded(orderId)
+      setOrders((prev) => prev.map((order) => (
+        order.id === orderId
+          ? { ...response.data, items: (response.data.items || []).filter(isCustomizedItem) }
+          : order
+      )))
+      toast.success('Refund marked as completed')
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark refund')
+    } finally {
+      setRefundingId(null)
     }
   }
 
@@ -94,6 +122,26 @@ const AdminCustomOrders = () => {
                   latitude={order.latitude}
                   longitude={order.longitude}
                 />
+                {order.status === 'CANCELLED' && order.paymentMethod === 'ESEWA' && order.refundAmount != null && (
+                  <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+                    <p className="font-medium text-black">
+                      eSewa refund: Rs. {order.refundAmount} ({order.refundPercent}%)
+                    </p>
+                    <p className="mt-1 text-gray-600">
+                      Status: {order.refundStatus === 'COMPLETED' ? 'Refunded' : 'Pending admin refund'}
+                    </p>
+                    {isAdmin && order.refundStatus === 'PENDING' && (
+                      <button
+                        type="button"
+                        disabled={refundingId === order.id}
+                        onClick={() => handleMarkRefunded(order.id)}
+                        className="mt-3 rounded-md bg-black px-4 py-2 text-sm text-white disabled:opacity-60"
+                      >
+                        {refundingId === order.id ? 'Saving...' : 'Mark refund completed'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <StatusBadge tone={order.status === 'CANCELLED' ? 'danger' : order.status === 'DELIVERED' ? 'success' : 'warning'}>

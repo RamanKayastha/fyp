@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Title from '../../components/Title'
 import { getMyOrders, updateOrderStatus } from '../../api/orders'
 import { isCustomizedItem } from '../../utils/orderFlags'
-import { isTerminalStatus } from '../../utils/orderStatus'
+import { canCancelOrder, esewaRefundPercentFor } from '../../utils/orderStatus'
 import { toast } from 'react-toastify'
 import DeliveryMap from '../../components/DeliveryMap'
 
@@ -57,16 +57,20 @@ const Orders = () => {
     }
   }, [])
 
-  const handleCancel = async (orderId) => {
-    if (!window.confirm('Cancel this order?')) return
-    setCancellingId(orderId)
+  const handleCancel = async (order) => {
+    const percent = order.paymentMethod === 'ESEWA' ? esewaRefundPercentFor(order.status) : null
+    const message = percent
+      ? `Cancel this eSewa order? You will be eligible for a ${percent}% refund (Rs. ${((Number(order.total) * percent) / 100).toFixed(2)}).`
+      : 'Cancel this order?'
+    if (!window.confirm(message)) return
+    setCancellingId(order.id)
     try {
-      const response = await updateOrderStatus(orderId, 'CANCELLED')
-      setOrders((prev) => prev.map((order) => (
-        order.id === orderId
-          ? { ...response.data, items: (response.data.items || []).filter((item) => !isCustomizedItem(item)) }
-          : order
-      )).filter((order) => order.items.length))
+      const response = await updateOrderStatus(order.id, 'CANCELLED')
+      setOrders((prev) => prev.map((item) => (
+        item.id === order.id
+          ? { ...response.data, items: (response.data.items || []).filter((line) => !isCustomizedItem(line)) }
+          : item
+      )).filter((item) => item.items.length))
       toast.success('Order cancelled')
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to cancel order')
@@ -137,15 +141,24 @@ const Orders = () => {
               longitude={order.longitude}
             />
             <p className='text-sm font-medium text-black'>Total: Rs. {order.total}</p>
-            {!isTerminalStatus(order.status) && (
+            {order.status === 'CANCELLED' && order.paymentMethod === 'ESEWA' && order.refundAmount != null && (
+              <p className='mt-2 text-sm text-amber-700'>
+                Refund due: Rs. {order.refundAmount} ({order.refundPercent}%)
+                {order.refundStatus === 'COMPLETED' ? ' · Refunded' : ' · Pending admin refund'}
+              </p>
+            )}
+            {canCancelOrder(order.status) && (
               <button
                 type='button'
                 disabled={cancellingId === order.id}
-                onClick={() => handleCancel(order.id)}
+                onClick={() => handleCancel(order)}
                 className='mt-3 border border-red-500 px-4 py-2 text-sm text-red-600 disabled:opacity-60'
               >
                 {cancellingId === order.id ? 'Cancelling...' : 'Cancel order'}
               </button>
+            )}
+            {order.status === 'OUT_FOR_DELIVERY' && (
+              <p className='mt-3 text-sm text-gray-500'>This order is out for delivery and can no longer be cancelled.</p>
             )}
           </div>
         ))}
